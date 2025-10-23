@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-m-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        't-md': '0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Simple scrollbar styling for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 20px;
+            border: transparent;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-white">
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto max-w-3xl p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="relative flex items-center justify-center h-10 w-10 shrink-0 overflow-hidden rounded-full bg-blue-600">
+                    <!-- Bot SVG Icon -->
+                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-7.5 0h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m7.5 15h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m0 1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5m-1.5-1.5h1.5" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold">AI Assistant</h1>
+                    <p class="text-xs text-green-500">Online</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Chat Window -->
+    <!-- This main container will hold all the chat messages -->
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 container mx-auto max-w-3xl">
+        
+        <!-- Bot Welcome Message -->
+        <div class="flex justify-start">
+            <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg rounded-bl-none p-3 max-w-xs sm:max-w-md">
+                <p class="text-sm">Hi there! I'm your AI Assistant. How can I help you today?</p>
+            </div>
+        </div>
+
+        <!-- More messages will be dynamically added here -->
+
+    </main>
+
+    <!-- Typing Indicator (hidden by default) -->
+    <div id="typing-indicator" class="hidden container mx-auto max-w-3xl px-4 md:px-6 pb-2">
+         <div class="flex justify-start">
+            <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg rounded-bl-none p-3 max-w-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div class="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-t-md border-t border-gray-200 dark:border-gray-700">
+        <form id="chat-form" class="container mx-auto max-w-3xl p-4 flex items-center space-x-2">
+            <input 
+                id="message-input" 
+                type="text" 
+                placeholder="Type your message..." 
+                autocomplete="off"
+                class="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100 dark:bg-gray-700 dark:text-white px-5"
+            >
+            <button 
+                type="submit" 
+                class="bg-blue-600 text-white p-3 rounded-full h-12 w-12 flex items-center justify-center hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+                <!-- Send SVG Icon -->
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.875L5.999 12zm0 0h7.5" />
+                </svg>
+                <span class="sr-only">Send message</span>
+            </button>
+        </form>
+    </footer>
+
+    <script>
+        // Get DOM elements
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+        
+        // ---
+        // !!! IMPORTANT !!!
+        // CHANGE THIS URL to your live Render.com backend URL
+        // ---
+        const API_URL = 'http://localhost:5000/chat'; // URL of your Python server
+
+        // --- NEW: Store conversation history ---
+        let conversation = [];
+
+        // --- Event Listeners ---
+        
+        /**
+         * Handle form submission
+         */
+        chatForm.addEventListener('submit', async (e) => { // Make this async
+            e.preventDefault(); // Prevent page reload
+            
+            const message = messageInput.value.trim();
+            if (message === '') return; // Don't send empty messages
+
+            // Add user's message to the chat window
+            addMessage(message, 'user');
+            
+            // Clear the input field
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // --- UPDATED: Call the Python Backend ---
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Send the new message AND the entire history
+                    body: JSON.stringify({ 
+                        message: message,
+                        history: conversation 
+                    }),
+                });
+
+                if (!response.ok) {
+                    // Try to get error message from server
+                    const errorData = await response.json().catch(() => null);
+                    const errorMsg = errorData?.error || `Network response was not ok (status: ${response.status})`;
+                    throw new Error(errorMsg);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const botResponse = data.response; 
+                // --- IMPORTANT: Update our local history with the one from the server ---
+                conversation = data.history; 
+
+                hideTypingIndicator();
+                addMessage(botResponse, 'bot');
+
+            } catch (error) {
+                console.error('Error fetching bot response:', error);
+                hideTypingIndicator();
+                // Display the actual error message to the user
+                addMessage(`Sorry, something went wrong: ${error.message}`, 'bot');
+            }
+            // --- END OF UPDATED LOGIC ---
+        });
+
+        // --- Helper Functions ---
+
+        /**
+         * Adds a new message to the chat window
+         * @param {string} text - The message text
+         * @param {'user' | 'bot'} sender - Who sent the message
+         */
+        function addMessage(text, sender) {
+            // Create the main message container
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            // Create the message bubble
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `shadow-md rounded-lg p-3 max-w-xs sm:max-w-md ${
+                sender === 'user' 
+                ? 'bg-blue-600 text-white rounded-br-none' 
+                : 'bg-white dark:bg-gray-800 rounded-bl-none'
+            }`;
+            
+            // Create a paragraph for the text
+            const messageText = document.createElement('p');
+            messageText.className = 'text-sm';
+            messageText.textContent = text;
+
+            // Assemble the message
+            messageBubble.appendChild(messageText);
+            messageContainer.appendChild(messageBubble);
+            chatWindow.appendChild(messageContainer);
+            
+            // Scroll to the bottom
+            scrollToBottom();
+        }
+
+        /**
+         * Scrolls the chat window to the latest message
+         */
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        /**
+         * Shows the "bot is typing" indicator
+         */
+        function showTypingIndicator() {
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+        }
+
+        /**
+         * Hides the "bot is typing" indicator
+         */
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('hidden');
+        }
+    </script>
+
+</body>
+</html>
