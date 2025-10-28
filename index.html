@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Research Chatbot</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Base styles for a clean, modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f7f7;
+            background-color: #e5e7eb; /* Light gray background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,76 +19,88 @@
         }
         .chat-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 700px; /* Slightly wider container */
             height: 90vh;
             display: flex;
             flex-direction: column;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         #chat-window {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 20px;
-            background-color: #f7f7f7;
+            padding: 24px;
+            background-color: #f9fafb; /* Off-white chat area */
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px; /* Increased spacing between messages */
+        }
+        
+        /* Message Bubble Styling */
+        .chat-bubble-container {
+            display: flex;
+            max-width: 100%;
         }
         .chat-bubble {
-            max-width: 80%;
-            padding: 10px 15px;
+            max-width: 85%;
+            padding: 12px 18px;
             border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        /* User Message */
+        .user-container {
+            justify-content: flex-end;
         }
         .user-message {
-            background-color: #1e40af; /* blue-700 */
+            background-color: #3b82f6; /* Blue-500 */
             color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
+            border-top-right-radius: 4px; /* Slight square corner on the inside */
+        }
+
+        /* Bot Message */
+        .bot-container {
+            justify-content: flex-start;
         }
         .bot-message {
-            background-color: #ffffff;
-            color: #1f2937; /* gray-800 */
-            align-self: flex-start;
-            border: 1px solid #e5e7eb; /* gray-200 */
-            border-bottom-left-radius: 4px;
+            background-color: #ffffff; 
+            color: #1f2937; /* Dark text */
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-top-left-radius: 4px; /* Slight square corner on the inside */
             white-space: pre-wrap; /* Essential for streaming, handles newlines */
         }
+
+        /* Typing Indicator */
         #typing-indicator {
             align-self: flex-start;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            color: #6b7280;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <header class="bg-blue-700 text-white p-4 shadow-md">
-        <h1 class="text-xl font-bold">🔬 Research Assistant Chatbot</h1>
-        <p class="text-sm opacity-80">Powered by Gemini 2.5 Pro (Streaming)</p>
+    <header class="bg-gray-800 text-white p-4 shadow-lg">
+        <h1 class="text-xl font-bold">🔬 Gemini Research Assistant</h1>
+        <p class="text-sm opacity-80">Powered by Gemini 2.5 Pro for deep analysis</p>
     </header>
 
     <div id="chat-window">
-        <!-- Initial Bot Message -->
-        <div class="flex justify-start">
+        <div class="chat-bubble-container bot-container">
             <div class="chat-bubble bot-message">
                 <p class="text-sm">Hello! I'm your research assistant powered by Gemini 2.5 Pro. I'm ready for complex queries, code analysis, or anything requiring factual depth. How can I help you research today?</p>
             </div>
         </div>
-        <!-- Messages will be appended here -->
-    </div>
+        </div>
 
-    <div class="p-4 bg-white border-t flex flex-col gap-2">
+    <div class="p-4 bg-white border-t flex flex-col gap-3">
         <div id="typing-indicator" class="hidden text-sm text-gray-500">
-            <span class="inline-block h-3 w-3 bg-blue-500 rounded-full animate-pulse mr-1"></span>
+            <span class="inline-block h-3 w-3 bg-blue-500 rounded-full animate-pulse mr-2"></span>
             Assistant is thinking...
         </div>
         <form id="chat-form" class="flex">
@@ -96,13 +108,13 @@
                 type="text"
                 id="message-input"
                 placeholder="Ask your research question..."
-                class="flex-grow p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                class="flex-grow p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                 autocomplete="off"
                 required
             />
             <button
                 type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-r-lg shadow-md transition duration-150 ease-in-out disabled:opacity-50"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50"
             >
                 Send
             </button>
@@ -119,9 +131,9 @@
 
     // ---
     // !!! IMPORTANT !!!
-    // PASTE YOUR RENDER BACKEND URL HERE: https://[your-app-name].onrender.com/chat
+    // PASTE YOUR RENDER BACKEND URL HERE: The URL must look like: https://[your-app-name].onrender.com/chat
     // ---
-    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // <-- REPLACE THIS ENTIRE STRING WITH YOUR REAL URL
+    const API_URL = 'https://https://chatbot-78y3.onrender.com/chat'; // <--- REPLACE THIS ENTIRE STRING WITH YOUR REAL PUBLIC URL + /chat
 
     // --- Store conversation history ---
     let conversation = [];
@@ -146,10 +158,10 @@
 
         // 2. Prepare the bot's receiving bubble
         const botMessageContainer = document.createElement('div');
-        botMessageContainer.className = 'flex justify-start';
+        botMessageContainer.className = 'chat-bubble-container bot-container';
         
         const botMessageBubble = document.createElement('div');
-        botMessageBubble.className = 'shadow-md rounded-lg p-3 max-w-xs sm:max-w-md bg-white dark:bg-gray-800 border border-gray-200 rounded-bl-none';
+        botMessageBubble.className = 'chat-bubble bot-message';
         
         const botMessageText = document.createElement('p');
         botMessageText.className = 'text-sm';
@@ -172,7 +184,6 @@
                 // Send the ENTIRE history array, including the new user message
                 body: JSON.stringify({ 
                     history: conversation,
-                    // Note: We include the message separately for compatibility with the final Python fix
                     message: message 
                 }),
             });
@@ -227,15 +238,12 @@
     // --- Helper Functions ---
 
     function addMessage(text, sender) {
+        // This function is now only used for the initial bot message and user messages
         const messageContainer = document.createElement('div');
-        messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+        messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
 
         const messageBubble = document.createElement('div');
-        messageBubble.className = `shadow-md rounded-lg p-3 max-w-xs sm:max-w-md ${
-            sender === 'user' 
-            ? 'bg-blue-600 text-white rounded-br-none' 
-            : 'bg-white dark:bg-gray-800 border border-gray-200 rounded-bl-none'
-        }`;
+        messageBubble.className = `chat-bubble ${sender}-message`;
         
         const messageText = document.createElement('p');
         messageText.className = 'text-sm';
