@@ -114,140 +114,175 @@
     </footer>
 
     <script>
-        // Get DOM elements
-        const chatWindow = document.getElementById('chat-window');
-        const chatForm = document.getElementById('chat-form');
-        const messageInput = document.getElementById('message-input');
-        const typingIndicator = document.getElementById('typing-indicator');
+    // Get DOM elements
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    // ---
+    // !!! IMPORTANT !!!
+    // CHANGE THIS URL to your live Render.com backend URL
+    // ---
+    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // URL of your Python server
+
+    // --- Store conversation history ---
+    let conversation = [];
+
+    // --- Event Listeners ---
+
+    /**
+     * Handle form submission
+     */
+    chatForm.addEventListener('submit', async (e) => { // Make this async
+        e.preventDefault(); // Prevent page reload
+
+        const message = messageInput.value.trim();
+        if (message === '') return; // Don't send empty messages
+
+        // 1. Add user's message to the chat window and history
+        addMessage(message, 'user');
         
-        // ---
-        // !!! IMPORTANT !!!
-        // CHANGE THIS URL to your live Render.com backend URL
-        // ---
-        const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // URL of your Python server
+        // Add user input to local history immediately
+        conversation.push({ "role": "user", "parts": [{ "text": message }] });
 
-        // --- NEW: Store conversation history ---
-        let conversation = [];
+        // Clear the input field and disable
+        messageInput.value = '';
+        messageInput.disabled = true;
 
-        // --- Event Listeners ---
+        // 2. Prepare the bot's receiving bubble
+        const botMessageContainer = document.createElement('div');
+        botMessageContainer.className = 'flex justify-start';
         
-        /**
-         * Handle form submission
-         */
-        chatForm.addEventListener('submit', async (e) => { // Make this async
-            e.preventDefault(); // Prevent page reload
-            
-            const message = messageInput.value.trim();
-            if (message === '') return; // Don't send empty messages
+        const botMessageBubble = document.createElement('div');
+        botMessageBubble.className = 'shadow-md rounded-lg p-3 max-w-xs sm:max-w-md bg-white dark:bg-gray-800 rounded-bl-none';
+        
+        const botMessageText = document.createElement('p');
+        botMessageText.className = 'text-sm';
+        
+        botMessageBubble.appendChild(botMessageText);
+        botMessageContainer.appendChild(botMessageBubble);
+        chatWindow.appendChild(botMessageContainer);
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Scroll down
+        scrollToBottom();
 
-            // Add user's message to the chat window
-            addMessage(message, 'user');
-            
-            // Clear the input field
-            messageInput.value = '';
+        // --- NEW STREAMING LOGIC START ---
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Send the ENTIRE history array from the last turn
+                body: JSON.stringify({ history: conversation }),
+            });
 
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // --- UPDATED: Call the Python Backend ---
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    // Send the new message AND the entire history
-                    body: JSON.stringify({ 
-                        message: message,
-                        history: conversation 
-                    }),
-                });
-
-                if (!response.ok) {
-                    // Try to get error message from server
-                    const errorData = await response.json().catch(() => null);
-                    const errorMsg = errorData?.error || `Network response was not ok (status: ${response.status})`;
-                    throw new Error(errorMsg);
-                }
-
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                const botResponse = data.response; 
-                // --- IMPORTANT: Update our local history with the one from the server ---
-                conversation = data.history; 
-
-                hideTypingIndicator();
-                addMessage(botResponse, 'bot');
-
-            } catch (error) {
-                console.error('Error fetching bot response:', error);
-                hideTypingIndicator();
-                // Display the actual error message to the user
-                addMessage(`Sorry, something went wrong: ${error.message}`, 'bot');
+            if (!response.ok) {
+                // Handle non-200 status errors (e.g., 500)
+                throw new Error(`Network response was not ok (status: ${response.status})`);
             }
-            // --- END OF UPDATED LOGIC ---
-        });
 
-        // --- Helper Functions ---
-
-        /**
-         * Adds a new message to the chat window
-         * @param {string} text - The message text
-         * @param {'user' | 'bot'} sender - Who sent the message
-         */
-        function addMessage(text, sender) {
-            // Create the main message container
-            const messageContainer = document.createElement('div');
-            messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
-
-            // Create the message bubble
-            const messageBubble = document.createElement('div');
-            messageBubble.className = `shadow-md rounded-lg p-3 max-w-xs sm:max-w-md ${
-                sender === 'user' 
-                ? 'bg-blue-600 text-white rounded-br-none' 
-                : 'bg-white dark:bg-gray-800 rounded-bl-none'
-            }`;
+            // Get the stream reader and decoder
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullReply = '';
             
-            // Create a paragraph for the text
-            const messageText = document.createElement('p');
-            messageText.className = 'text-sm';
-            messageText.textContent = text;
-
-            // Assemble the message
-            messageBubble.appendChild(messageText);
-            messageContainer.appendChild(messageBubble);
-            chatWindow.appendChild(messageContainer);
+            // Loop to read the stream chunks
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
+                }
+                
+                // Decode the chunk of text
+                const chunk = decoder.decode(value, { stream: true });
+                
+                // Append the new text to the bot's message element instantly
+                botMessageText.textContent += chunk;
+                fullReply += chunk;
+                
+                // Keep the chat window scrolled to the bottom
+                scrollToBottom();
+            }
             
-            // Scroll to the bottom
-            scrollToBottom();
-        }
+            // 3. Complete the turn
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            messageInput.focus();
 
-        /**
-         * Scrolls the chat window to the latest message
-         */
-        function scrollToBottom() {
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
+            // Add the *full* final reply to the conversation history for the next turn
+            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
 
-        /**
-         * Shows the "bot is typing" indicator
-         */
-        function showTypingIndicator() {
-            typingIndicator.classList.remove('hidden');
-            scrollToBottom();
-        }
 
-        /**
-         * Hides the "bot is typing" indicator
-         */
-        function hideTypingIndicator() {
-            typingIndicator.classList.add('hidden');
+        } catch (error) {
+            console.error('Error fetching bot response:', error);
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            
+            // Display the error message in the chat window
+            botMessageText.textContent = `Sorry, an error occurred: ${error.message}. Please check your backend logs.`;
         }
-    </script>
+    });
+    // --- END OF UPDATED LOGIC ---
+
+    // --- Helper Functions ---
+
+    /**
+     * Adds a new message to the chat window (User messages only now use this)
+     */
+    function addMessage(text, sender) {
+        // Create the main message container
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+        // Create the message bubble
+        const messageBubble = document.createElement('div');
+        messageBubble.className = `shadow-md rounded-lg p-3 max-w-xs sm:max-w-md ${
+            sender === 'user' 
+            ? 'bg-blue-600 text-white rounded-br-none' 
+            : 'bg-white dark:bg-gray-800 rounded-bl-none'
+        }`;
+        
+        // Create a paragraph for the text
+        const messageText = document.createElement('p');
+        messageText.className = 'text-sm';
+        messageText.textContent = text;
+
+        // Assemble the message
+        messageBubble.appendChild(messageText);
+        messageContainer.appendChild(messageBubble);
+        chatWindow.appendChild(messageContainer);
+        
+        // Scroll to the bottom
+        scrollToBottom();
+    }
+
+    /**
+     * Scrolls the chat window to the latest message
+     */
+    function scrollToBottom() {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    /**
+     * Shows the "bot is typing" indicator
+     */
+    function showTypingIndicator() {
+        typingIndicator.classList.remove('hidden');
+        scrollToBottom();
+    }
+
+    /**
+     * Hides the "bot is typing" indicator
+     */
+    function hideTypingIndicator() {
+        typingIndicator.classList.add('hidden');
+    }
+</script>
 
 </body>
 </html>
