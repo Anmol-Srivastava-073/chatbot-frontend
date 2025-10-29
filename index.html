@@ -181,16 +181,17 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Send the ENTIRE history array, including the new user message
+                // FIX: Only send the 'history' array as expected by the Flask backend
                 body: JSON.stringify({ 
                     history: conversation,
-                    message: message 
+                    // The 'message: message' line was removed here.
                 }),
             });
 
             if (!response.ok) {
-                // If we get a failed response status (like 500)
-                throw new Error(`Server returned status: ${response.status}. Check backend logs.`);
+                // Better error handling for non-200 responses
+                const errorBody = await response.text();
+                throw new Error(`Server status ${response.status}: ${errorBody.substring(0, 100)}...`);
             }
 
             // Get the stream reader and decoder
@@ -231,7 +232,7 @@
             messageInput.disabled = false;
             
             // Display the error message in the chat window
-            botMessageText.textContent = `Sorry, an error occurred: ${error.message}. Please check your backend logs.`;
+            botMessageText.textContent = `❌ Connection or Server Error: ${error.message}. Please check console/logs.`;
         }
     });
 
