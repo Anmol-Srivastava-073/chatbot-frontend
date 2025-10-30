@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veritas - Clinical Assistant</title>
+    <title>Veritas Clinical Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Base styles for a clean, modern look */
@@ -26,7 +26,7 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #005B66 !important; 
+            background-color: #e5e7eb; /* Light gray background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -39,7 +39,7 @@
             height: 90vh;
             display: flex;
             flex-direction: column;
-            background-color: #006D77 !important;
+            background-color: #ffffff;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -114,15 +114,15 @@
 <body>
 
 <div class="chat-container">
-    <header class="bg-gray-800 text-white p-4 shadow-lg">
-        <h1 class="text-xl font-bold">⚕️ Veritas</h1><!-- FIXED HEADER -->
-        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p><!-- FIXED SUBTITLE -->
+    <header class="theme-primary-bg text-white p-4 shadow-lg"> <!-- APPLIED NEW CLASS -->
+        <h1 class="text-xl font-bold">⚕️ Veritas Clinical Assistant</h1>
+        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
     </header>
 
     <div id="chat-window">
         <div class="chat-bubble-container bot-container">
             <div class="chat-bubble bot-message">
-                <p class="text-sm">Welcome to Veritas!. I'm here to securely collect your clinical history for your doctor. What is the main symptom or reason for your consultation today?</p><!-- FIXED WELCOME MESSAGE -->
+                <p class="text-sm">Welcome to Veritas. I'm here to securely collect your clinical history for your doctor. What is the main symptom or reason for your consultation today?</p>
             </div>
         </div>
     </div>
@@ -139,7 +139,8 @@
                 placeholder="Enter your main symptom (e.g., Headache, Fever)..." 
                 class="flex-grow p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                 autocomplete="off"
-                required />
+                required
+            />
             <button
                 type="button"
                 id="mic-button"
@@ -154,7 +155,7 @@
             <button
                 type="submit"
                 id="send-button"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50"
+                class="text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50" 
             >
                 Send
             </button>
