@@ -339,14 +339,14 @@
                 conversation = data.history;
                 renderChatHistory();
             } else {
-                // FIX: Call the dedicated function for the initial message
-                fetchInitialMessage();
+                // If no history, or failed to load, start a fresh chat (streamChat handles the initial message)
+                streamChat(null, true); 
             }
             
         } catch (error) {
             console.error('Error fetching history. Starting fresh chat:', error);
-            // FIX: Fallback to the dedicated function for the initial message
-            fetchInitialMessage(); 
+            // If fetching history fails, start with a fresh conversation
+            streamChat(null, true); 
         }
     }
     
@@ -365,8 +365,7 @@
 
 
     // Function to handle the streaming API call and display
-    // REMOVED unused 'is_initial' argument from the signature
-    async function streamChat(message = null) {
+    async function streamChat(message = null, is_initial = false) {
         
         // 1. Prepare UI for streaming
         showTypingIndicator();
@@ -398,7 +397,7 @@
                 // Send the user ID and the message to the backend
                 body: JSON.stringify({ 
                     user_id: USER_ID,
-                    message: message
+                    message: message // message is null for the initial call
                 }),
             });
 
@@ -472,7 +471,7 @@
     // --- NEW CHAT FUNCTIONALITY ---
     
     function startNewConversation() {
-        console.log("Starting new conversation, regenerating user ID.");
+        console.log("Starting new conversation...");
         
         // 1. Clear the DOM messages
         chatWindow.innerHTML = '';
@@ -480,13 +479,16 @@
         // 2. Reset the local conversation state
         conversation = []; 
         
-        // FIX: Regenerate a brand new user ID for a fresh Supabase entry (Optional but ensures a clean slate)
+        // 3. Generate a brand new user ID for a fresh Supabase entry (Optional, but ensures a clean slate)
+        // NOTE: If you prefer to keep the same user ID to track sessions, remove this block.
+        // Keeping the same ID is fine if the backend can distinguish sessions.
+        // For a true "new chat" feel, generating a new ID is safer.
         USER_ID = crypto.randomUUID();
         localStorage.setItem('veritas_user_id', USER_ID);
         console.log(`New user ID generated for session: ${USER_ID}`);
 
-        // FIX: Call the dedicated function for the initial message
-        fetchInitialMessage();
+        // 4. Trigger a fresh chat stream to get the initial welcome message
+        streamChat(null, true);
     }
     
     // Event listener for the new button
@@ -515,41 +517,6 @@
 
         return htmlText;
     }
-
-    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH ***
-async function fetchInitialMessage() {
-    try {
-        // Prepare UI
-        showTypingIndicator(); 
-        
-        const response = await fetch(`${API_BASE_URL}/new_session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: USER_ID })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to start new session: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Add the non-streaming initial bot message to the chat window
-        addMessage(data.message, 'bot'); 
-        
-    } catch (error) {
-        console.error('Error starting new session:', error);
-        // Display error if the initial message fails
-        addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
-    } finally {
-        // Re-enable input
-        hideTypingIndicator();
-        messageInput.disabled = false;
-        micButton.disabled = false;
-        sendButton.disabled = false;
-        messageInput.focus();
-    }
-}
 
 
     function addMessage(text, sender) {
