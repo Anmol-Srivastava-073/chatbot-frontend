@@ -97,64 +97,79 @@
             font-style: italic;
         }
         /* Styling the Bot Container for the Icon Placement */
-.chat-bubble-container.bot-container {
-    /* 1. Set the container to position children relative to it */
+        .chat-bubble-container {
     position: relative; 
-    /* 2. Use flexbox to align the bubble and the pseudo-icon */
     display: flex;
     align-items: flex-start;
-    padding-left: 45px; /* Adds space for the icon */
     margin-bottom: 1rem;
+    max-width: 80%; /* Limits bubble width */
 }
 
-/* Injecting the Bot Icon using the ::before pseudo-element */
-.chat-bubble-container.bot-container::before {
+/* --- BOT STYLES (Icon on Left) --- */
+.bot-container {
+    padding-left: 45px; /* Space for the icon */
+    /* Keeps the container on the left (default) */
+}
+
+.bot-container::before {
     content: "";
     
-    /* Position the icon absolutely to keep it out of the text flow */
+    /* Position */
     position: absolute;
     left: 0; 
-    top: 0; /* Align icon to the top of the bubble container */
+    top: 0; 
     
-    /* Size and shape of the icon */
+    /* Image and Size */
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    
-    /* Inserting the image */
     background-image: url('image/bot.png'); /* <<< REPLACE THIS PATH */
     background-size: cover;
     background-position: center;
-    
-    /* Optional: style to match a professional theme */
+    background-color: #e0f2f7; /* Light background for the icon */
     border: 2px solid #3f83f8; 
-    background-color: #ffffff;
 }
 
-/* Adjust the message bubble to look right next to the icon */
-.chat-bubble.bot-message {
-    /* Ensures the bubble has a little offset from the icon */
-    margin-right: 1rem; 
-    /* Example color to differentiate it from the user bubble */
+.bot-message {
     background-color: #e0f2f7; 
     padding: 0.75rem 1rem;
     border-radius: 1.25rem;
+    border-top-left-radius: 0.25rem; /* Cleaner look next to the icon */
 }
 
-/* Optional: Example CSS for a User message to maintain balance */
-/* You will need to add a 'user-container' and 'user-message' class to the HTML
-   when a user replies for this to work. */
-.chat-bubble-container.user-container {
-    justify-content: flex-end;
-    margin-left: auto;
-    padding-right: 45px;
-}
-.chat-bubble.user-message {
-    background-color: #d1fae5;
-    margin-left: 1rem;
-    /* ... other bubble styling ... */
+
+/* --- USER STYLES (Icon on Right) --- */
+.user-container {
+    justify-content: flex-end; /* Aligns content to the right */
+    margin-left: auto; /* Pushes the entire container to the right */
+    padding-right: 45px; /* Space for the icon */
 }
 
+.user-container::after {
+    content: "";
+    
+    /* Position */
+    position: absolute;
+    right: 0; 
+    top: 0; 
+    
+    /* Image and Size */
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-image: url('image/user.png'); /* <<< REPLACE THIS PATH */
+    background-size: cover;
+    background-position: center;
+    background-color: #d1fae5; /* Light background for the icon */
+    border: 2px solid #10b981; 
+}
+
+.user-message {
+    background-color: #d1fae5; /* Light color for user messages */
+    padding: 0.75rem 1rem;
+    border-radius: 1.25rem;
+    border-top-right-radius: 0.25rem; /* Cleaner look next to the icon */
+}
         /* New: Microphone Button Styles */
         #mic-button {
             transition: background-color 0.15s ease-in-out;
