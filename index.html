@@ -97,36 +97,41 @@
             font-style: italic;
         }
         /* Styling the Bot Container for the Icon Placement */
-        .chat-bubble-container {
+        /* --- BASE CONTAINER STYLES --- */
+.chat-bubble-container {
     position: relative; 
     display: flex;
     align-items: flex-start;
     margin-bottom: 1rem;
-    max-width: 80%; /* Limits bubble width */
+    max-width: 80%; /* Limits the ENTIRE container (icon + bubble) width to 80% */
+}
+
+/* --- FIX FOR WIDE USER MESSAGE SIZE --- */
+/* The user container needs to float to the right side of the chat window */
+.user-container {
+    justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
+    margin-left: auto; /* Pushes the entire container (limited to 80% width) to the far right */
+    padding-right: 45px; /* Space for the icon */
 }
 
 /* --- BOT STYLES (Icon on Left) --- */
 .bot-container {
     padding-left: 45px; /* Space for the icon */
-    /* Keeps the container on the left (default) */
+    /* Bot container stays on the left (default) */
 }
 
 .bot-container::before {
     content: "";
-    
-    /* Position */
     position: absolute;
     left: 0; 
     top: 0; 
-    
-    /* Image and Size */
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-image: url('image/bot.png'); /* <<< REPLACE THIS PATH */
+    background-image: url('image/bot.png'); 
     background-size: cover;
     background-position: center;
-    background-color: #e0f2f7; /* Light background for the icon */
+    background-color: #e0f2f7;
     border: 2px solid #3f83f8; 
 }
 
@@ -134,41 +139,32 @@
     background-color: #e0f2f7; 
     padding: 0.75rem 1rem;
     border-radius: 1.25rem;
-    border-top-left-radius: 0.25rem; /* Cleaner look next to the icon */
+    border-top-left-radius: 0.25rem;
 }
 
 
 /* --- USER STYLES (Icon on Right) --- */
-.user-container {
-    justify-content: flex-end; /* Aligns content to the right */
-    margin-left: auto; /* Pushes the entire container to the right */
-    padding-right: 45px; /* Space for the icon */
-}
 
 .user-container::after {
     content: "";
-    
-    /* Position */
     position: absolute;
     right: 0; 
     top: 0; 
-    
-    /* Image and Size */
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-image: url('image/user.png'); /* <<< REPLACE THIS PATH */
+    background-image: url('image/user.png'); 
     background-size: cover;
     background-position: center;
-    background-color: #d1fae5; /* Light background for the icon */
+    background-color: #d1fae5;
     border: 2px solid #10b981; 
 }
 
 .user-message {
-    background-color: #d1fae5; /* Light color for user messages */
+    background-color: #d1fae5; 
     padding: 0.75rem 1rem;
     border-radius: 1.25rem;
-    border-top-right-radius: 0.25rem; /* Cleaner look next to the icon */
+    border-top-right-radius: 0.25rem;
 }
         /* New: Microphone Button Styles */
         #mic-button {
