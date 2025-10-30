@@ -60,41 +60,19 @@
         position: relative; 
         display: flex;
         align-items: flex-start;
+        /* REMOVED: margin-bottom: 1rem; (conflict with gap) */
         max-width: 85%; /* Limits the ENTIRE container (icon + bubble) width */
     }
     
-    /* --- FIX: Removed redundant .chat-bubble max-width that was conflicting --- */
+    /* --- REMOVED REDUNDANT/CONFLICTING STYLES FOR .chat-bubble, .user-container, .bot-container here --- */
     .chat-bubble {
         padding: 12px 18px;
         border-radius: 20px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         word-wrap: break-word;
         line-height: 1.5;
-        /* Re-introduce max-width property for general styles if needed, 
-           but width: 100% on specific messages is the cleaner solution with icons. */
     }
 
-    /* User Message - Old/Generic Styles */
-    .user-container {
-        justify-content: flex-end;
-    }
-    .user-message {
-        background-color: #D3D3D3 !important; /* Blue-500 */
-        color: black;
-        border-top-right-radius: 4px; /* Slight square corner on the inside */
-    }
-
-    /* Bot Message - Old/Generic Styles */
-    .bot-container {
-        justify-content: flex-start;
-    }
-    .bot-message {
-        background-color: #ffffff; 
-        color: #1f2937; /* Dark text */
-        border: 1px solid #d1d5db; /* Light gray border */
-        border-top-left-radius: 4px; /* Slight square corner on the inside */
-        white-space: pre-wrap; /* Essential for streaming, handles newlines */
-    }
 
     /* Typing Indicator */
     #typing-indicator {
@@ -104,7 +82,7 @@
     }
 
     
-    /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIX --- */
+    /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIXES --- */
 
     /* The user container needs to float to the right side of the chat window */
     .user-container {
@@ -123,7 +101,11 @@
         content: "";
         position: absolute;
         left: 0; 
-        top: 0; 
+        
+        /* *** FIX 1: Vertical centering of icon *** */
+        top: 50%; 
+        transform: translateY(-50%);
+        
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -135,13 +117,11 @@
     }
 
     .bot-message {
-        /* *** FIX 1: Enforce full width usage within the container *** */
-        width: 100%; 
+        width: 100%; /* Ensures full width usage within the container */
         background-color: #e0f2f7; 
         padding: 0.75rem 1rem;
         border-radius: 1.25rem;
         border-top-left-radius: 0.25rem;
-        /* Re-apply desired color and border from general styles */
         color: #1f2937; 
         border: 1px solid #d1d5db; 
     }
@@ -153,7 +133,11 @@
         content: "";
         position: absolute;
         right: 0; 
-        top: 0; 
+        
+        /* *** FIX 2: Vertical centering of icon *** */
+        top: 50%; 
+        transform: translateY(-50%);
+        
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -165,16 +149,12 @@
     }
 
     .user-message {
-        /* *** FIX 2: Enforce full width usage within the container *** */
-        width: 100%; 
-        background-color: #d1fae5; /* The color from your specific styles */
+        width: 100%; /* Ensures full width usage within the container */
+        background-color: #3b82f6; 
         padding: 0.75rem 1rem;
         border-radius: 1.25rem;
         border-top-right-radius: 0.25rem;
-        
-        /* Ensure user message text is white for contrast against blue background */
         color: white; 
-        background-color: #3b82f6; /* Use the blue background from your original user-message class */
     }
     
     /* New: Microphone Button Styles */
