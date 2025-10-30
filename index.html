@@ -81,7 +81,7 @@
             font-style: italic;
         }
 
-        /* Reverting markdown code block style for light theme contrast */
+        /* Markdown code block style for light theme contrast */
         .bot-message code {
             background-color: #f1f5f9; /* Light gray background for inline code */
             color: #1f2937;
@@ -93,6 +93,8 @@
 
         /* New: Microphone Button Styles */
         #mic-button {
+            /* Resetting default rounding for smooth flow in the input bar */
+            border-radius: 0; 
             transition: background-color 0.15s ease-in-out;
         }
         .recording {
