@@ -23,9 +23,15 @@
     #send-button:hover {
         background-color: #005B66 !important; 
     }
-    /* --- NEW CHAT BUTTON STYLE --- */
+
+    /* --- FIX: Custom styling for #new-chat-button ---
+       We must remove the specific background-color and color overrides
+       if we want Tailwind classes (like text-white, py-2, px-4, rounded-lg) to work. 
+       The original button in the HTML already applies the desired background. 
+       We only need to keep the general transition rules.
+    */
     #new-chat-button {
-        background-color: #005B66; /* Slightly darker primary */
+        /* background-color: #005B66; <-- REMOVED - Tailwind handles the initial color */
         transition: background-color 0.15s ease-in-out;
         border: 1px solid rgba(255, 255, 255, 0.3);
     }
@@ -179,8 +185,8 @@
             <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
         </div>
         <button 
-            id="new-chat-button" 
-            class="text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-opacity-90 transition duration-150 ease-in-out"
+            id="new-chat-button"
+            class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
             title="Start a new conversation"
         >
             New Chat
@@ -339,14 +345,14 @@
                 conversation = data.history;
                 renderChatHistory();
             } else {
-                // If no history, or failed to load, start a fresh chat (streamChat handles the initial message)
-                streamChat(null, true); 
+                // FIX: Call the dedicated function for the initial message
+                fetchInitialMessage();
             }
             
         } catch (error) {
             console.error('Error fetching history. Starting fresh chat:', error);
-            // If fetching history fails, start with a fresh conversation
-            streamChat(null, true); 
+            // FIX: Fallback to the dedicated function for the initial message
+            fetchInitialMessage();
         }
     }
     
@@ -365,7 +371,8 @@
 
 
     // Function to handle the streaming API call and display
-    async function streamChat(message = null, is_initial = false) {
+    // REMOVED unused 'is_initial' argument from the signature
+    async function streamChat(message = null) {
         
         // 1. Prepare UI for streaming
         showTypingIndicator();
@@ -397,7 +404,7 @@
                 // Send the user ID and the message to the backend
                 body: JSON.stringify({ 
                     user_id: USER_ID,
-                    message: message // message is null for the initial call
+                    message: message
                 }),
             });
 
@@ -471,7 +478,7 @@
     // --- NEW CHAT FUNCTIONALITY ---
     
     function startNewConversation() {
-        console.log("Starting new conversation...");
+        console.log("Starting new conversation, regenerating user ID.");
         
         // 1. Clear the DOM messages
         chatWindow.innerHTML = '';
@@ -479,16 +486,13 @@
         // 2. Reset the local conversation state
         conversation = []; 
         
-        // 3. Generate a brand new user ID for a fresh Supabase entry (Optional, but ensures a clean slate)
-        // NOTE: If you prefer to keep the same user ID to track sessions, remove this block.
-        // Keeping the same ID is fine if the backend can distinguish sessions.
-        // For a true "new chat" feel, generating a new ID is safer.
+        // FIX: Regenerate a brand new user ID for a fresh Supabase entry
         USER_ID = crypto.randomUUID();
         localStorage.setItem('veritas_user_id', USER_ID);
         console.log(`New user ID generated for session: ${USER_ID}`);
 
-        // 4. Trigger a fresh chat stream to get the initial welcome message
-        streamChat(null, true);
+        // FIX: Call the dedicated function for the initial message
+        fetchInitialMessage();
     }
     
     // Event listener for the new button
@@ -517,6 +521,42 @@
 
         return htmlText;
     }
+
+
+    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH (ADDED CORRECTLY) ***
+async function fetchInitialMessage() {
+    try {
+        // Prepare UI
+        showTypingIndicator(); 
+        
+        const response = await fetch(`${API_BASE_URL}/new_session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: USER_ID })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to start new session: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Add the non-streaming initial bot message to the chat window
+        addMessage(data.message, 'bot'); 
+        
+    } catch (error) {
+        console.error('Error starting new session:', error);
+        // Display error if the initial message fails
+        addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
+    } finally {
+        // Re-enable input
+        hideTypingIndicator();
+        messageInput.disabled = false;
+        micButton.disabled = false;
+        sendButton.disabled = false;
+        messageInput.focus();
+    }
+}
 
 
     function addMessage(text, sender) {
