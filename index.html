@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
     /* Base styles for a clean, modern look */
-    @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,600;1,600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
     
     /* --- CUSTOM VERITAS THEME COLORS (Applied Directly) --- */
     /* Primary Color: #006D77 */
@@ -26,7 +26,7 @@
     /* --- END CUSTOM COLORS --- */
     
     body {
-        font-family: 'Raleway', sans-serif;
+        font-family: 'Inter', sans-serif;
         background-color: #83C5BE !important; /* Light gray background */
         display: flex;
         justify-content: center;
@@ -52,7 +52,7 @@
         background-color: #f9fafb; /* Off-white chat area */
         display: flex;
         flex-direction: column;
-        gap: 16px; /* Increased spacing between messages */
+        gap: 16px; /* Controls spacing BETWEEN messages */
     }
     
     /* Message Bubble Styling - General */
@@ -60,11 +60,9 @@
         position: relative; 
         display: flex;
         align-items: flex-start;
-        /* REMOVED: margin-bottom: 1rem; (conflict with gap) */
         max-width: 85%; /* Limits the ENTIRE container (icon + bubble) width */
     }
     
-    /* --- REMOVED REDUNDANT/CONFLICTING STYLES FOR .chat-bubble, .user-container, .bot-container here --- */
     .chat-bubble {
         padding: 12px 18px;
         border-radius: 20px;
@@ -72,7 +70,6 @@
         word-wrap: break-word;
         line-height: 1.5;
     }
-
 
     /* Typing Indicator */
     #typing-indicator {
@@ -102,7 +99,7 @@
         position: absolute;
         left: 0; 
         
-        /* *** FIX 1: Vertical centering of icon *** */
+        /* FIX: Vertical centering of icon */
         top: 50%; 
         transform: translateY(-50%);
         
@@ -134,7 +131,7 @@
         position: absolute;
         right: 0; 
         
-        /* *** FIX 2: Vertical centering of icon *** */
+        /* FIX: Vertical centering of icon */
         top: 50%; 
         transform: translateY(-50%);
         
@@ -150,7 +147,7 @@
 
     .user-message {
         width: 100%; /* Ensures full width usage within the container */
-        background-color: #D3D3D3 !important; 
+        background-color: #3b82f6; 
         padding: 0.75rem 1rem;
         border-radius: 1.25rem;
         border-top-right-radius: 0.25rem;
@@ -173,22 +170,14 @@
 </style>
 </head>
 <body>
-  <div class="chat-container">
-    <header class="theme-primary-bg text-white p-4 shadow-lg">
-      <h1 class="text-xl font-bold flex items-center gap-2">
-        ⚕️ Veritas - Clinical Assistant
-      </h1>
-      <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
+
+<div class="chat-container">
+    <header class="theme-primary-bg text-white p-4 shadow-lg"> <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
+        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
     </header>
 
     <div id="chat-window">
-      <div class="chat-bubble-container bot-container">
-        <div class="chat-bubble bot-message">
-          <p class="text-sm">
-            Welcome to Veritas. I'm here to securely collect your clinical history for your doctor. What is the main symptom or reason for your consultation today?
-          </p>
-        </div>
-      </div>
+        <!-- HARDCODED MESSAGE REMOVED - JS will render the welcome message -->
     </div>
 
     <div class="p-4 bg-white border-t flex flex-col gap-3">
@@ -227,7 +216,6 @@
     </div>
 </div>
 
-
 <script>
     // Get DOM elements
     const chatWindow = document.getElementById('chat-window');
@@ -242,9 +230,10 @@
     // This URL points to your deployed Flask backend proxy.
     // Ensure the URL is correct for your Render deployment.
     // ---
-    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // <-- CONFIRMED: Points to your Flask server /chat endpoint
+    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; 
 
-    // --- Store conversation history ---
+    // --- Store conversation history (local state for stateless backend) ---
+    // The history is stored in the OpenAI format required by the Flask backend
     let conversation = [];
 
     // ====================================================================
@@ -268,7 +257,6 @@
                 recognition.start();
                 micButton.classList.add('recording');
                 micButton.title = 'Recording... Speak now!';
-                // UPDATED: Placeholder for clinical context
                 messageInput.placeholder = '🎙️ Recording... Please state your symptoms clearly.'; 
                 messageInput.disabled = true;
                 sendButton.disabled = true;
@@ -299,7 +287,6 @@
         recognition.onend = () => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            // UPDATED: Placeholder after voice input ends
             messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
             sendButton.disabled = false;
@@ -310,18 +297,18 @@
         recognition.onerror = (event) => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            // UPDATED: Placeholder after voice input error
             messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.error('Speech recognition error:', event.error);
             // Optionally alert the user
             if (event.error === 'not-allowed') {
-                alert("Microphone permission denied. Please allow microphone access for voice input.");
+                // Using console.error instead of alert as per instructions
+                console.error("Microphone permission denied. Please allow microphone access for voice input.");
             } else if (event.error === 'no-speech') {
-                alert("No speech detected. Please try speaking louder.");
+                console.warn("No speech detected. Please try speaking louder.");
             } else {
-                alert(`Voice input error: ${event.error}`);
+                console.error(`Voice input error: ${event.error}`);
             }
         };
 
@@ -332,28 +319,16 @@
     }
 
     // ====================================================================
-    // 💬 CHAT LOGIC 
+    // 💬 CHAT LOGIC AND STREAMING HANDLER
     // ====================================================================
-    
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
 
-        const message = messageInput.value.trim();
-        if (message === '') return; 
-
-        // 1. Add user's message to the chat window and history
-        addMessage(message, 'user');
+    // Function to handle the streaming API call and display
+    async function streamChat(message = null) {
         
-        // Add user input to local history immediately
-        conversation.push({ "role": "user", "parts": [{ "text": message }] });
-
-        // Clear the input field and disable
-        messageInput.value = '';
-        messageInput.disabled = true;
-        micButton.disabled = true;
-        sendButton.disabled = true;
-
-        // 2. Prepare the bot's receiving bubble
+        // 1. Prepare UI for streaming
+        showTypingIndicator();
+        
+        // Create the bot's receiving bubble and append it to the chat window
         const botMessageContainer = document.createElement('div');
         botMessageContainer.className = 'chat-bubble-container bot-container';
         
@@ -362,38 +337,38 @@
         
         const botMessageText = document.createElement('p');
         botMessageText.className = 'text-sm';
+        botMessageText.textContent = ''; // Start with empty content
         
         botMessageBubble.appendChild(botMessageText);
         botMessageContainer.appendChild(botMessageBubble);
         chatWindow.appendChild(botMessageContainer);
-        
-        // Show typing indicator
-        showTypingIndicator();
         scrollToBottom();
 
-        // --- STREAMING LOGIC ---
+        let fullReply = '';
+        
+        if (message) {
+             // 2. Add user input to local history immediately before sending
+             conversation.push({ "role": "user", "parts": [{ "text": message }] });
+        }
+
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Send the conversation history to the Flask backend
-                body: JSON.stringify({ 
-                    history: conversation,
-                }),
+                // Send the ENTIRE current conversation history
+                body: JSON.stringify({ history: conversation }),
             });
 
             if (!response.ok) {
-                // Better error handling for non-200 responses
                 const errorBody = await response.text();
-                throw new Error(`Server status ${response.status}: ${errorBody.substring(0, 100)}...`);
+                throw new Error(`Server Status ${response.status}: ${errorBody.substring(0, 200)}...`);
             }
 
-            // Get the stream reader and decoder
+            // 3. Get the stream reader and decoder
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            let fullReply = '';
             
             // Loop to read the stream chunks
             while (true) {
@@ -405,38 +380,52 @@
                 // Decode the chunk of text
                 const chunk = decoder.decode(value, { stream: true });
                 
-                // Append the new text to the bot's message element and use markdown conversion
-                botMessageText.innerHTML += convertMarkdownToHtml(chunk);
+                // Append RAW text content for smooth streaming display
+                botMessageText.textContent += chunk; 
                 fullReply += chunk;
                 
                 // Keep the chat window scrolled to the bottom
                 scrollToBottom();
             }
             
-            // 3. Complete the turn
+            // 4. FINAL FIX: Convert markdown and apply to innerHTML once streaming is complete
+            botMessageText.innerHTML = convertMarkdownToHtml(fullReply);
+
+            // 5. Add the *full* final reply to the conversation history for the next turn
+            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
+            
+        } catch (error) {
+            console.error('Error fetching bot response:', error);
+            // Display the error message in the chat window
+            botMessageText.innerHTML = `❌ Connection or Server Error: <strong>${error.message}</strong>. Please check console/logs.`;
+        } finally {
+            // 6. Re-enable inputs
             hideTypingIndicator();
             messageInput.disabled = false;
             micButton.disabled = false;
             sendButton.disabled = false;
             messageInput.focus();
-
-            // Add the *full* final reply to the conversation history for the next turn
-            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
-            
-            // Set the final, fully converted HTML content for coherence
-            botMessageText.innerHTML = convertMarkdownToHtml(fullReply);
-
-
-        } catch (error) {
-            console.error('Error fetching bot response:', error);
-            hideTypingIndicator();
-            messageInput.disabled = false;
-            micButton.disabled = false;
-            sendButton.disabled = false;
-            
-            // Display the error message in the chat window
-            botMessageText.textContent = `❌ Connection or Server Error: ${error.message}. Please check console/logs.`;
         }
+    }
+
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+
+        const message = messageInput.value.trim();
+        if (message === '') return; 
+
+        // 1. Add user's message to the chat window (non-streaming)
+        addMessage(message, 'user');
+        
+        // 2. Clear the input field and disable inputs
+        messageInput.value = '';
+        messageInput.disabled = true;
+        micButton.disabled = true;
+        sendButton.disabled = true;
+
+        // 3. Start the streaming process
+        await streamChat(message);
     });
 
     // --- Helper Functions ---
@@ -464,7 +453,7 @@
 
 
     function addMessage(text, sender) {
-        // This function is now only used for the initial bot message and user messages
+        // This function is now ONLY used for user messages and the initial bot message before streaming
         const messageContainer = document.createElement('div');
         messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
 
@@ -474,8 +463,8 @@
         const messageText = document.createElement('p');
         messageText.className = 'text-sm';
         
-        // MODIFIED: Use innerHTML and the converter for bot messages
         if (sender === 'bot') {
+            // Apply markdown conversion for pre-loaded (or simulated) messages
             messageText.innerHTML = convertMarkdownToHtml(text);
         } else {
             // Keep textContent for user messages to prevent HTML injection
@@ -501,6 +490,12 @@
     function hideTypingIndicator() {
         typingIndicator.classList.add('hidden');
     }
+    
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Automatically start the conversation to get the welcome message
+        streamChat(); // Sends an empty message array, triggering the system prompt
+    });
 </script>
 </body>
 </html>
