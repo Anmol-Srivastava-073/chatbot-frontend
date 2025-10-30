@@ -23,14 +23,12 @@
     #send-button:hover {
         background-color: #005B66 !important; 
     }
-    /* --- FIX: Removed conflicting custom styles for the button itself, 
-       but kept the hover state for consistency (using a transparent white). --- */
+    /* --- NEW CHAT BUTTON STYLE --- */
     #new-chat-button {
         transition: background-color 0.15s ease-in-out;
         border: 1px solid rgba(255, 255, 255, 0.3);
     }
     #new-chat-button:hover {
-        /* FIX: Using a transparent hover for a clean look */
         background-color: rgba(255, 255, 255, 0.15);
     }
     /* --- END CUSTOM COLORS --- */
@@ -88,25 +86,28 @@
         font-style: italic;
     }
 
-    /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIXES --- */
+    /* === CRITICAL FIXES FOR ICON ALIGNMENT === */
 
     /* The user container needs to float to the right side of the chat window */
     .user-container {
         justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
         margin-left: auto; /* Pushes the entire container to the far right */
-        padding-right: 45px; /* Space for the icon */
+        /* FIX: Adjusted padding for better fit */
+        padding-right: 40px; 
         flex-direction: row-reverse; /* Puts icon on the right of the bubble */
     }
 
     /* --- BOT STYLES (Icon on Left) --- */
     .bot-container {
-        padding-left: 45px; /* Space for the icon */
+        /* FIX: Adjusted padding for better fit */
+        padding-left: 40px; 
     }
 
     .bot-container::before {
         content: "";
         position: absolute;
-        left: 0; 
+        /* FIX: Moved left position slightly to align flush with padding */
+        left: 0px;  
         top: 50%; 
         transform: translateY(-50%);
         width: 36px;
@@ -134,7 +135,8 @@
     .user-container::after {
         content: "";
         position: absolute;
-        right: 0; 
+        /* FIX: Moved right position slightly to align flush with padding */
+        right: 0px; 
         top: 50%; 
         transform: translateY(-50%);
         width: 36px;
@@ -155,7 +157,8 @@
         border-top-right-radius: 0.25rem;
         color: white; 
     }
-    
+    /* === END CRITICAL FIXES === */
+
     /* New: Microphone Button Styles */
     #mic-button {
         transition: background-color 0.15s ease-in-out;
@@ -179,7 +182,7 @@
             <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
             <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
         </div>
-                <button 
+        <button 
             id="new-chat-button"
             class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
             title="Start a new conversation"
@@ -300,7 +303,6 @@
             micButton.title = 'Start Voice Input';
             messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
-            sendButton.disabled = false;
         };
 
         recognition.onerror = (event) => {
@@ -321,40 +323,40 @@
     // 💬 CHAT LOGIC AND STREAMING HANDLER
     // ====================================================================
 
-    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH ***
-    async function fetchInitialMessage() {
-        try {
-            // Prepare UI
-            showTypingIndicator(); 
-            
-            const response = await fetch(`${API_BASE_URL}/new_session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: USER_ID })
-            });
+    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH ***
+    async function fetchInitialMessage() {
+        try {
+            // Prepare UI
+            showTypingIndicator(); 
+            
+            const response = await fetch(`${API_BASE_URL}/new_session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: USER_ID })
+            });
 
-            if (!response.ok) {
-                throw new Error(`Failed to start new session: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            // Add the non-streaming initial bot message to the chat window
-            addMessage(data.message, 'bot'); 
-            
-        } catch (error) {
-            console.error('Error starting new session:', error);
-            // Display error if the initial message fails
-            addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
-        } finally {
-            // Re-enable input
-            hideTypingIndicator();
-            messageInput.disabled = false;
-            micButton.disabled = false;
-            sendButton.disabled = false;
-            messageInput.focus();
-        }
-    }
+            if (!response.ok) {
+                throw new Error(`Failed to start new session: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Add the non-streaming initial bot message to the chat window
+            addMessage(data.message, 'bot'); 
+            
+        } catch (error) {
+            console.error('Error starting new session:', error);
+            // Display error if the initial message fails
+            addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
+        } finally {
+            // Re-enable input
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+        }
+    }
 
 
     // Function to fetch history on load
@@ -402,7 +404,7 @@
 
 
     // Function to handle the streaming API call and display
-    // CORRECT: Removed unused 'is_initial' argument
+    // CORRECT: Removed unused 'is_initial' argument
     async function streamChat(message = null) {
         
         // 1. Prepare UI for streaming
