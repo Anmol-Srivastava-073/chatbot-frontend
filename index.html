@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Win+R System Assistant Chat</title><!-- UPDATED TITLE -->
+    <title>Veritas</title><!-- UPDATED TITLE -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Base styles for a clean, modern look */
@@ -99,14 +99,14 @@
 
 <div class="chat-container">
     <header class="bg-gray-800 text-white p-4 shadow-lg">
-        <h1 class="text-xl font-bold">📚 Win+R System Assistant</h1><!-- UPDATED HEADER -->
-        <p class="text-sm opacity-80">Focusing on Doubt Clarification and Quiz Generation</p><!-- UPDATED SUBTITLE -->
+        <h1 class="text-xl font-bold">⚕️ Veritas</h1><!-- FIXED HEADER -->
+        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p><!-- FIXED SUBTITLE -->
     </header>
 
     <div id="chat-window">
         <div class="chat-bubble-container bot-container">
             <div class="chat-bubble bot-message">
-                <p class="text-sm">Welcome to the Win+R Gamified Classroom Manager Assistant. I am here to help you clarify doubts and test your knowledge with relevant quizzes. How can I assist your learning today?</p><!-- UPDATED WELCOME MESSAGE -->
+                <p class="text-sm">Welcome to Veritas!. I'm here to securely collect your clinical history for your doctor. What is the main symptom or reason for your consultation today?</p><!-- FIXED WELCOME MESSAGE -->
             </div>
         </div>
     </div>
@@ -120,11 +120,10 @@
             <input 
                 type="text"
                 id="message-input"
-                placeholder="Ask your research question..." 
+                placeholder="Enter your main symptom (e.g., Headache, Fever)..." 
                 class="flex-grow p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                 autocomplete="off"
-                required
-            />
+                required />
             <button
                 type="button"
                 id="mic-button"
@@ -187,8 +186,8 @@
                 recognition.start();
                 micButton.classList.add('recording');
                 micButton.title = 'Recording... Speak now!';
-                // CHANGED: Update placeholder for voice input
-                messageInput.placeholder = '🎙️ Recording... Speak your doubt or quiz request!';
+                // UPDATED: Placeholder for clinical context
+                messageInput.placeholder = '🎙️ Recording... Please state your symptoms clearly.'; 
                 messageInput.disabled = true;
                 sendButton.disabled = true;
                 console.log("Voice recognition started.");
@@ -218,8 +217,8 @@
         recognition.onend = () => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            // CHANGED: Update placeholder after voice input ends
-            messageInput.placeholder = 'Enter your doubt or request a quiz...';
+            // UPDATED: Placeholder after voice input ends
+            messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.log("Voice recognition ended.");
@@ -229,8 +228,8 @@
         recognition.onerror = (event) => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            // CHANGED: Update placeholder after voice input error
-            messageInput.placeholder = 'Enter your doubt or request a quiz...';
+            // UPDATED: Placeholder after voice input error
+            messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.error('Speech recognition error:', event.error);
