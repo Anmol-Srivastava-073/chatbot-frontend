@@ -7,179 +7,191 @@
     <link rel="icon" type="image/png" href="image/veritasai.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Base styles for a clean, modern look */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    /* Base styles for a clean, modern look */
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+    
+    /* --- CUSTOM VERITAS THEME COLORS (Applied Directly) --- */
+    /* Primary Color: #006D77 */
+    .theme-primary-bg {
+        background-color: #006D77 !important;
+    }
+    /* Darker shade for hover effect on the Send button: #005B66 */
+    #send-button {
+        background-color: #006D77 !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+    #send-button:hover {
+        background-color: #005B66 !important; 
+    }
+    /* --- END CUSTOM COLORS --- */
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #83C5BE !important; /* Light gray background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .chat-container {
+        width: 100%;
+        max-width: 700px; /* Slightly wider container */
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    #chat-window {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 24px;
+        background-color: #f9fafb; /* Off-white chat area */
+        display: flex;
+        flex-direction: column;
+        gap: 16px; /* Increased spacing between messages */
+    }
+    
+    /* Message Bubble Styling - General */
+    .chat-bubble-container {
+        position: relative; 
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        max-width: 85%; /* Limits the ENTIRE container (icon + bubble) width */
+    }
+    
+    /* --- FIX: Removed redundant .chat-bubble max-width that was conflicting --- */
+    .chat-bubble {
+        padding: 12px 18px;
+        border-radius: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        word-wrap: break-word;
+        line-height: 1.5;
+        /* Re-introduce max-width property for general styles if needed, 
+           but width: 100% on specific messages is the cleaner solution with icons. */
+    }
+
+    /* User Message - Old/Generic Styles */
+    .user-container {
+        justify-content: flex-end;
+    }
+    .user-message {
+        background-color: #3b82f6; /* Blue-500 */
+        color: black;
+        border-top-right-radius: 4px; /* Slight square corner on the inside */
+    }
+
+    /* Bot Message - Old/Generic Styles */
+    .bot-container {
+        justify-content: flex-start;
+    }
+    .bot-message {
+        background-color: #ffffff; 
+        color: #1f2937; /* Dark text */
+        border: 1px solid #d1d5db; /* Light gray border */
+        border-top-left-radius: 4px; /* Slight square corner on the inside */
+        white-space: pre-wrap; /* Essential for streaming, handles newlines */
+    }
+
+    /* Typing Indicator */
+    #typing-indicator {
+        align-self: flex-start;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    
+    /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIX --- */
+
+    /* The user container needs to float to the right side of the chat window */
+    .user-container {
+        justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
+        margin-left: auto; /* Pushes the entire container to the far right */
+        padding-right: 45px; /* Space for the icon */
+        flex-direction: row-reverse; /* Puts icon on the right of the bubble */
+    }
+
+    /* --- BOT STYLES (Icon on Left) --- */
+    .bot-container {
+        padding-left: 45px; /* Space for the icon */
+    }
+
+    .bot-container::before {
+        content: "";
+        position: absolute;
+        left: 0; 
+        top: 0; 
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-image: url('image/bot.png'); 
+        background-size: cover;
+        background-position: center;
+        background-color: #e0f2f7;
+        border: 2px solid #3f83f8; 
+    }
+
+    .bot-message {
+        /* *** FIX 1: Enforce full width usage within the container *** */
+        width: 100%; 
+        background-color: #e0f2f7; 
+        padding: 0.75rem 1rem;
+        border-radius: 1.25rem;
+        border-top-left-radius: 0.25rem;
+        /* Re-apply desired color and border from general styles */
+        color: #1f2937; 
+        border: 1px solid #d1d5db; 
+    }
+
+
+    /* --- USER STYLES (Icon on Right) --- */
+
+    .user-container::after {
+        content: "";
+        position: absolute;
+        right: 0; 
+        top: 0; 
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-image: url('image/user.png'); 
+        background-size: cover;
+        background-position: center;
+        background-color: #d1fae5;
+        border: 2px solid #10b981; 
+    }
+
+    .user-message {
+        /* *** FIX 2: Enforce full width usage within the container *** */
+        width: 100%; 
+        background-color: #d1fae5; /* The color from your specific styles */
+        padding: 0.75rem 1rem;
+        border-radius: 1.25rem;
+        border-top-right-radius: 0.25rem;
         
-        /* --- CUSTOM VERITAS THEME COLORS (Applied Directly) --- */
-        /* Primary Color: #006D77 */
-        .theme-primary-bg {
-            background-color: #006D77 !important;
-        }
-        /* Darker shade for hover effect on the Send button: #005B66 */
-        #send-button {
-            background-color: #006D77 !important;
-            transition: background-color 0.15s ease-in-out;
-        }
-        #send-button:hover {
-            background-color: #005B66 !important; 
-        }
-        /* --- END CUSTOM COLORS --- */
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #83C5BE !important; /* Light gray background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 700px; /* Slightly wider container */
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        #chat-window {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 24px;
-            background-color: #f9fafb; /* Off-white chat area */
-            display: flex;
-            flex-direction: column;
-            gap: 16px; /* Increased spacing between messages */
-        }
-        /* Message Bubble Styling */
-        .chat-bubble-container {
-            display: flex;
-            max-width: 100%;
-        }
-        .chat-bubble {
-            max-width: 85%;
-            padding: 12px 18px;
-            border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            word-wrap: break-word;
-            line-height: 1.5;
-        }
-
-        /* User Message */
-        .user-container {
-            justify-content: flex-end;
-        }
-        .user-message {
-            background-color: #3b82f6; /* Blue-500 */
-            color: white;
-            border-top-right-radius: 4px; /* Slight square corner on the inside */
-        }
-
-        /* Bot Message */
-        .bot-container {
-            justify-content: flex-start;
-        }
-        .bot-message {
-            background-color: #ffffff; 
-            color: #1f2937; /* Dark text */
-            border: 1px solid #d1d5db; /* Light gray border */
-            border-top-left-radius: 4px; /* Slight square corner on the inside */
-            white-space: pre-wrap; /* Essential for streaming, handles newlines */
-        }
-
-        /* Typing Indicator */
-        #typing-indicator {
-            align-self: flex-start;
-            color: #6b7280;
-            font-style: italic;
-        }
-        /* Styling the Bot Container for the Icon Placement */
-        /* --- BASE CONTAINER STYLES --- */
-.chat-bubble-container {
-    position: relative; 
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-    max-width: 85%; /* Limits the ENTIRE container (icon + bubble) width to 80% */
-}
-
-/* --- FIX FOR WIDE USER MESSAGE SIZE --- */
-/* The user container needs to float to the right side of the chat window */
-.user-container {
-    justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
-    margin-left: auto; /* Pushes the entire container (limited to 80% width) to the far right */
-    padding-right: 45px; /* Space for the icon */
-}
-
-/* --- BOT STYLES (Icon on Left) --- */
-.bot-container {
-    padding-left: 45px; /* Space for the icon */
-    /* Bot container stays on the left (default) */
-}
-
-.bot-container::before {
-    content: "";
-    position: absolute;
-    left: 0; 
-    top: 0; 
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-image: url('image/bot.png'); 
-    background-size: cover;
-    background-position: center;
-    background-color: #e0f2f7;
-    border: 2px solid #3f83f8; 
-}
-
-.bot-message {
-    background-color: #e0f2f7; 
-    padding: 0.75rem 1rem;
-    border-radius: 1.25rem;
-    border-top-left-radius: 0.25rem;
-}
-
-
-/* --- USER STYLES (Icon on Right) --- */
-
-.user-container::after {
-    content: "";
-    position: absolute;
-    right: 0; 
-    top: 0; 
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-image: url('image/user.png'); 
-    background-size: cover;
-    background-position: center;
-    background-color: #d1fae5;
-    border: 2px solid #10b981; 
-}
-
-.user-message {
-    background-color: #d1fae5; 
-    padding: 0.75rem 1rem;
-    border-radius: 1.25rem;
-    border-top-right-radius: 0.25rem;
-}
-        /* New: Microphone Button Styles */
-        #mic-button {
-            transition: background-color 0.15s ease-in-out;
-        }
-        .recording {
-            background-color: #ef4444 !important; /* Red-500 when recording */
-            animation: pulse-red 1s infinite;
-        }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-    </style>
+        /* Ensure user message text is white for contrast against blue background */
+        color: white; 
+        background-color: #3b82f6; /* Use the blue background from your original user-message class */
+    }
+    
+    /* New: Microphone Button Styles */
+    #mic-button {
+        transition: background-color 0.15s ease-in-out;
+    }
+    .recording {
+        background-color: #ef4444 !important; /* Red-500 when recording */
+        animation: pulse-red 1s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+</style>
 </head>
 <body>
 
