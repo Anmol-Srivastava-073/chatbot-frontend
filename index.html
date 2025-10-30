@@ -9,13 +9,17 @@
         /* Base styles for a clean, modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
-        /* --- CUSTOM VERITAS THEME COLORS --- */
+        /* --- CUSTOM VERITAS THEME COLORS (Applied Directly) --- */
         /* Primary Color: #006D77 */
-        .bg-veritas-primary {
+        .theme-primary-bg {
             background-color: #006D77 !important;
         }
-        /* Darker shade for hover effect: #005B66 */
-        .hover\:bg-veritas-dark:hover {
+        /* Darker shade for hover effect on the Send button: #005B66 */
+        #send-button {
+            background-color: #006D77 !important;
+            transition: background-color 0.15s ease-in-out;
+        }
+        #send-button:hover {
             background-color: #005B66 !important; 
         }
         /* --- END CUSTOM COLORS --- */
