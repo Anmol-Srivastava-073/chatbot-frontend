@@ -15,6 +15,7 @@
     .theme-primary-bg {
         background-color: #006D77 !important;
     }
+    
     /* Darker shade for hover effect on the Send button: #005B66 */
     #send-button {
         background-color: #006D77 !important;
@@ -23,11 +24,20 @@
     #send-button:hover {
         background-color: #005B66 !important; 
     }
+
+    /* New Chat Button Hover */
+    #new-chat-button {
+        transition: background-color 0.15s ease-in-out;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    #new-chat-button:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
     /* --- END CUSTOM COLORS --- */
     
     body {
         font-family: 'Raleway', sans-serif;
-        background-color: #83C5BE !important; /* Light gray background */
+        background-color: #83C5BE !important; /* Light teal background */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -36,7 +46,7 @@
     }
     .chat-container {
         width: 100%;
-        max-width: 700px; /* Slightly wider container */
+        max-width: 700px;
         height: 90vh;
         display: flex;
         flex-direction: column;
@@ -69,6 +79,8 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         word-wrap: break-word;
         line-height: 1.5;
+        width: fit-content; /* Ensure bubble shrinks to content */
+        max-width: 100%;
     }
 
     /* Typing Indicator */
@@ -78,14 +90,18 @@
         font-style: italic;
     }
 
-    /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIXES --- */
+    /* --- ICON INJECTION AND MESSAGE STYLES (Fixed) --- */
 
-    /* The user container needs to float to the right side of the chat window */
-    .user-container {
-        justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
-        margin-left: auto; /* Pushes the entire container to the far right */
-        padding-right: 45px; /* Space for the icon */
-        flex-direction: row-reverse; /* Puts icon on the right of the bubble */
+    /* Universal Icon Sizing */
+    .icon-size {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        position: absolute;
+        top: 50%; 
+        transform: translateY(-50%);
     }
 
     /* --- BOT STYLES (Icon on Left) --- */
@@ -95,55 +111,45 @@
 
     .bot-container::before {
         content: "";
-        position: absolute;
         left: 0; 
-        top: 50%; 
-        transform: translateY(-50%);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
         background-image: url('image/bot.png'); 
-        background-size: cover;
-        background-position: center;
         background-color: #e0f2f7;
-        border: 2px solid #3f83f8; 
+        border: 2px solid #006D77; /* Corrected to Theme Primary Color */
+        @apply icon-size; 
     }
 
     .bot-message {
-        width: 100%; /* Ensures full width usage within the container */
         background-color: #e0f2f7; 
-        padding: 0.75rem 1rem;
-        border-radius: 1.25rem;
-        border-top-left-radius: 0.25rem;
         color: #1f2937; 
         border: 1px solid #d1d5db; 
+        border-radius: 1.25rem;
+        border-top-left-radius: 0.5rem; /* Smoother point */
     }
 
 
     /* --- USER STYLES (Icon on Right) --- */
+    .user-container {
+        justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
+        margin-left: auto; /* Pushes the entire container to the far right */
+        padding-right: 45px; /* Space for the icon */
+        /* Use row for the content flow, then rely on justify-content: flex-end */
+        flex-direction: row; 
+    }
+
     .user-container::after {
         content: "";
-        position: absolute;
         right: 0; 
-        top: 50%; 
-        transform: translateY(-50%);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
         background-image: url('image/user.png'); 
-        background-size: cover;
-        background-position: center;
         background-color: #d1fae5;
-        border: 2px solid #10b981; 
+        border: 2px solid #3b82f6; /* Corrected to Message Blue Color */
+        @apply icon-size; 
     }
 
     .user-message {
-        width: 100%; /* Ensures full width usage within the container */
         background-color: #3b82f6; 
-        padding: 0.75rem 1rem;
-        border-radius: 1.25rem;
-        border-top-right-radius: 0.25rem;
         color: white; 
+        border-radius: 1.25rem;
+        border-top-right-radius: 0.5rem; /* Smoother point */
     }
     
     /* New: Microphone Button Styles */
@@ -164,14 +170,21 @@
 <body>
 
 <div class="chat-container">
-    <header class="theme-primary-bg text-white p-4 shadow-lg"> <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
-        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
-        <button id="newChatButton">Start New Chat</button>
+    <header class="theme-primary-bg text-white p-4 shadow-lg flex justify-between items-center"> <div>
+            <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
+            <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
+        </div>
+        <button 
+            id="new-chat-button" 
+            class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
+            title="Start a new conversation"
+        >
+            New Chat
+        </button>
     </header>
 
     <div id="chat-window">
-        <!-- Chat messages will be dynamically added here -->
-    </div>
+        </div>
 
     <div class="p-4 bg-white border-t flex flex-col gap-3">
         <div id="typing-indicator" class="hidden text-sm text-gray-500">
@@ -216,7 +229,7 @@
     const typingIndicator = document.getElementById('typing-indicator');
     const micButton = document.getElementById('mic-button');
     const sendButton = document.getElementById('send-button');
-    // Get the New Chat button
+    // Get the New Chat button (FIX: use the correct ID)
     const newChatButton = document.getElementById('new-chat-button');
 
 
@@ -539,7 +552,6 @@
         messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
 
         const messageBubble = document.createElement('div');
-        // Removed 'user-message-wrapper' as CSS handles the floating now
         messageBubble.className = `chat-bubble ${sender}-message`;
         
         const messageText = document.createElement('p');
