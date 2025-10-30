@@ -339,8 +339,8 @@
                 conversation = data.history;
                 renderChatHistory();
             } else {
-                // If no history, or failed to load, start a fresh chat (streamChat handles the initial message)
-                streamChat(null, true); 
+                // If no history, call the dedicated function to start a new session (fetch initial message)
+                fetchInitialMessage();
             }
             
         } catch (error) {
@@ -517,6 +517,41 @@
 
         return htmlText;
     }
+
+    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH ***
+async function fetchInitialMessage() {
+    try {
+        // Prepare UI
+        showTypingIndicator(); 
+        
+        const response = await fetch(`${API_BASE_URL}/new_session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: USER_ID })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to start new session: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Add the non-streaming initial bot message to the chat window
+        addMessage(data.message, 'bot'); 
+        
+    } catch (error) {
+        console.error('Error starting new session:', error);
+        // Display error if the initial message fails
+        addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
+    } finally {
+        // Re-enable input
+        hideTypingIndicator();
+        messageInput.disabled = false;
+        micButton.disabled = false;
+        sendButton.disabled = false;
+        messageInput.focus();
+    }
+}
 
 
     function addMessage(text, sender) {
