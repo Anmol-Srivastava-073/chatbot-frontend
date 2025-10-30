@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -78,7 +78,6 @@
         font-style: italic;
     }
 
-    
     /* --- ICON INJECTION AND FINAL MESSAGE SIZING FIXES --- */
 
     /* The user container needs to float to the right side of the chat window */
@@ -98,11 +97,8 @@
         content: "";
         position: absolute;
         left: 0; 
-        
-        /* FIX: Vertical centering of icon */
         top: 50%; 
         transform: translateY(-50%);
-        
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -125,16 +121,12 @@
 
 
     /* --- USER STYLES (Icon on Right) --- */
-
     .user-container::after {
         content: "";
         position: absolute;
         right: 0; 
-        
-        /* FIX: Vertical centering of icon */
         top: 50%; 
         transform: translateY(-50%);
-        
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -167,7 +159,7 @@
         70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
         100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
-</style>
+    </style>
 </head>
 <body>
 
@@ -177,7 +169,7 @@
     </header>
 
     <div id="chat-window">
-        <!-- HARDCODED MESSAGE REMOVED - JS will render the welcome message -->
+        <!-- Chat messages will be dynamically added here -->
     </div>
 
     <div class="p-4 bg-white border-t flex flex-col gap-3">
@@ -227,31 +219,37 @@
 
     // ---
     // !!! IMPORTANT !!!
-    // This URL points to your deployed Flask backend proxy.
-    // Ensure the URL is correct for your Render deployment.
+    // This URL must be updated to your live Flask backend URL on Render.
+    // Replace the placeholder with your actual URL (e.g., https://your-app-name.onrender.com)
     // ---
-    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; 
+    const API_BASE_URL = 'https://chatbot-78y3.onrender.com'; // <<< UPDATE THIS BASE URL
 
-    // --- Store conversation history (local state for stateless backend) ---
-    // The history is stored in the OpenAI format required by the Flask backend
+    // --- User ID Management for Supabase Persistence ---
+    let USER_ID = localStorage.getItem('veritas_user_id');
+    if (!USER_ID) {
+        // Generate a new UUID if none exists
+        USER_ID = crypto.randomUUID();
+        localStorage.setItem('veritas_user_id', USER_ID);
+        console.log(`New user ID generated: ${USER_ID}`);
+    } else {
+        console.log(`Existing user ID loaded: ${USER_ID}`);
+    }
+
     let conversation = [];
 
     // ====================================================================
-    // 🎤 VOICE INPUT SETUP (Web Speech API)
+    // 🎤 VOICE INPUT SETUP (Web Speech API) - (Code omitted for brevity, assumed to work)
     // ====================================================================
 
-    // Get the vendor-prefixed SpeechRecognition object
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    // Check if the browser supports Speech Recognition
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.continuous = false; // Stop listening after one phrase
-        recognition.lang = "en-US"; // Set your language here
+        recognition.continuous = false;
+        recognition.lang = "en-US";
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        // Event for when the mic button is clicked
         micButton.addEventListener('click', () => {
             try {
                 recognition.start();
@@ -260,9 +258,7 @@
                 messageInput.placeholder = '🎙️ Recording... Please state your symptoms clearly.'; 
                 messageInput.disabled = true;
                 sendButton.disabled = true;
-                console.log("Voice recognition started.");
             } catch (error) {
-                // Catches error if recognition is already active
                 if (error.name === 'InvalidStateError') {
                     recognition.stop();
                 } else {
@@ -271,29 +267,20 @@
             }
         });
 
-        // Event for when a result is successfully recognized
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            console.log("Transcript received:", transcript);
-            
-            // Set the transcript into the text input
             messageInput.value = transcript;
-
-            // Trigger the form submission using the transcribed text
             chatForm.dispatchEvent(new Event('submit'));
         };
 
-        // Event for when the recognition service disconnects or stops
         recognition.onend = () => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
             messageInput.placeholder = 'Enter your main symptom (e.g., Headache, Fever)...'; 
             messageInput.disabled = false;
             sendButton.disabled = false;
-            console.log("Voice recognition ended.");
         };
 
-        // Event for errors (e.g., no microphone found, permission denied)
         recognition.onerror = (event) => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
@@ -301,29 +288,61 @@
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.error('Speech recognition error:', event.error);
-            // Optionally alert the user
-            if (event.error === 'not-allowed') {
-                // Using console.error instead of alert as per instructions
-                console.error("Microphone permission denied. Please allow microphone access for voice input.");
-            } else if (event.error === 'no-speech') {
-                console.warn("No speech detected. Please try speaking louder.");
-            } else {
-                console.error(`Voice input error: ${event.error}`);
-            }
         };
-
     } else {
-        // Hide the mic button if the browser doesn't support the API
         micButton.style.display = 'none';
         console.warn("Web Speech API is not supported in this browser.");
     }
+
 
     // ====================================================================
     // 💬 CHAT LOGIC AND STREAMING HANDLER
     // ====================================================================
 
+    // Function to fetch history on load
+    async function getHistory() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/history`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: USER_ID })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load history: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.history && Array.isArray(data.history)) {
+                conversation = data.history;
+                renderChatHistory();
+            }
+            
+        } catch (error) {
+            console.error('Error fetching history:', error);
+            // If fetching history fails, start with a fresh conversation
+            // The next message will trigger the save for the new user_id
+            streamChat(null, true); 
+        }
+    }
+    
+    // Function to render the entire history array to the DOM
+    function renderChatHistory() {
+        chatWindow.innerHTML = ''; // Clear existing messages
+        conversation.forEach(msg => {
+            const text = msg.parts ? msg.parts[0].text : msg.text; // Adapt to Flask output format
+            const sender = msg.role === 'model' ? 'bot' : 'user';
+            
+            // Re-render using addMessage function
+            addMessage(text, sender);
+        });
+        scrollToBottom();
+    }
+
+
     // Function to handle the streaming API call and display
-    async function streamChat(message = null) {
+    async function streamChat(message = null, is_initial = false) {
         
         // 1. Prepare UI for streaming
         showTypingIndicator();
@@ -344,21 +363,19 @@
         chatWindow.appendChild(botMessageContainer);
         scrollToBottom();
 
+        // --- Stream execution ---
         let fullReply = '';
-        
-        if (message) {
-             // 2. Add user input to local history immediately before sending
-             conversation.push({ "role": "user", "parts": [{ "text": message }] });
-        }
+        const streamEndpoint = `${API_BASE_URL}/chat`;
 
         try {
-            const response = await fetch(API_URL, {
+            const response = await fetch(streamEndpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // Send the ENTIRE current conversation history
-                body: JSON.stringify({ history: conversation }),
+                headers: { 'Content-Type': 'application/json' },
+                // Send the user ID and the message to the backend
+                body: JSON.stringify({ 
+                    user_id: USER_ID,
+                    message: message // message is null for the initial call
+                }),
             });
 
             if (!response.ok) {
@@ -366,7 +383,7 @@
                 throw new Error(`Server Status ${response.status}: ${errorBody.substring(0, 200)}...`);
             }
 
-            // 3. Get the stream reader and decoder
+            // Get the stream reader and decoder
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             
@@ -391,8 +408,10 @@
             // 4. FINAL FIX: Convert markdown and apply to innerHTML once streaming is complete
             botMessageText.innerHTML = convertMarkdownToHtml(fullReply);
 
-            // 5. Add the *full* final reply to the conversation history for the next turn
-            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
+            // The backend handles saving the history now, so we don't need to push to the local 'conversation' 
+            // array here unless we rely on it for the next turn. 
+            // For robustness, let's refresh the history from the source to keep conversation array accurate.
+            await getHistory(); 
             
         } catch (error) {
             console.error('Error fetching bot response:', error);
@@ -430,7 +449,6 @@
 
     // --- Helper Functions ---
     
-    // Function to convert basic markdown (like bold and newlines) to HTML
     function convertMarkdownToHtml(markdownText) {
         let htmlText = markdownText;
 
@@ -453,7 +471,6 @@
 
 
     function addMessage(text, sender) {
-        // This function is now ONLY used for user messages and the initial bot message before streaming
         const messageContainer = document.createElement('div');
         messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
 
@@ -464,7 +481,7 @@
         messageText.className = 'text-sm';
         
         if (sender === 'bot') {
-            // Apply markdown conversion for pre-loaded (or simulated) messages
+            // Apply markdown conversion for messages
             messageText.innerHTML = convertMarkdownToHtml(text);
         } else {
             // Keep textContent for user messages to prevent HTML injection
@@ -472,7 +489,8 @@
         }
 
         messageBubble.appendChild(messageText);
-        messageContainer.appendChild(messageBubble);
+        // Note: Icon is handled via CSS pseudo-elements
+        messageContainer.appendChild(messageBubble); 
         chatWindow.appendChild(messageContainer);
         
         scrollToBottom();
@@ -492,10 +510,7 @@
     }
     
     // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // Automatically start the conversation to get the welcome message
-        streamChat(); // Sends an empty message array, triggering the system prompt
-    });
+    document.addEventListener('DOMContentLoaded', getHistory);
 </script>
 </body>
 </html>
