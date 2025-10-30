@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Win+R Study Command Center</title>
+    <title>Gemini Research Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Base styles for a clean, modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1f2937; /* Dark Gray/Slate background for game theme */
+            background-color: #e5e7eb; /* Light gray background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,24 +19,23 @@
         }
         .chat-container {
             width: 100%;
-            max-width: 700px;
+            max-width: 700px; /* Slightly wider container */
             height: 90vh;
             display: flex;
             flex-direction: column;
-            background-color: #111827; /* Very dark base */
+            background-color: #ffffff;
             border-radius: 16px;
-            border: 2px solid #10b981; /* Green-500 border for "system active" feel */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         #chat-window {
             flex-grow: 1;
             overflow-y: auto;
             padding: 24px;
-            background-color: #1f2937; /* Slightly lighter dark chat area */
+            background-color: #f9fafb; /* Off-white chat area */
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 16px; /* Increased spacing between messages */
         }
         
         /* Message Bubble Styling */
@@ -47,47 +46,49 @@
         .chat-bubble {
             max-width: 85%;
             padding: 12px 18px;
-            border-radius: 16px; /* Slightly tighter rounding */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             word-wrap: break-word;
             line-height: 1.5;
         }
 
-        /* User Message (Vibrant Blue/Purple) */
+        /* User Message */
         .user-container {
             justify-content: flex-end;
         }
         .user-message {
-            background-color: #6366f1; /* Indigo-500 */
+            background-color: #3b82f6; /* Blue-500 */
             color: white;
-            border-top-right-radius: 4px;
+            border-top-right-radius: 4px; /* Slight square corner on the inside */
         }
 
-        /* Bot Message (Clean Gray/Green Accents) */
+        /* Bot Message */
         .bot-container {
             justify-content: flex-start;
         }
         .bot-message {
-            background-color: #374151; /* Gray-700 */
-            color: #f9fafb; /* Light text on dark background */
-            border: 1px solid #10b981; /* Green accent border */
-            border-top-left-radius: 4px;
-            white-space: pre-wrap;
+            background-color: #ffffff; 
+            color: #1f2937; /* Dark text */
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-top-left-radius: 4px; /* Slight square corner on the inside */
+            white-space: pre-wrap; /* Essential for streaming, handles newlines */
         }
 
         /* Typing Indicator */
         #typing-indicator {
             align-self: flex-start;
-            color: #10b981; /* Green accent color */
+            color: #6b7280;
             font-style: italic;
         }
-        /* Markdown Code block style */
+
+        /* Reverting markdown code block style for light theme contrast */
         .bot-message code {
-            background-color: #4b5563; /* Darker background for inline code */
-            color: #d1d5db;
+            background-color: #f1f5f9; /* Light gray background for inline code */
+            color: #1f2937;
             padding: 2px 4px;
             border-radius: 4px;
             font-size: 0.9em;
+            border: 1px solid #e2e8f0;
         }
 
         /* New: Microphone Button Styles */
@@ -108,40 +109,37 @@
 <body>
 
 <div class="chat-container">
-    <header class="bg-green-600 text-white p-4 shadow-xl">
-        <!-- Updated Title for the Gamified Theme -->
-        <h1 class="text-2xl font-extrabold flex items-center">
-            <span class="mr-3">⚡</span> Win+R: Study Command Center
-        </h1>
-        <p class="text-sm opacity-90">Doubt Clarification & Quiz Engine — **Focus Mode: Active**</p>
+    <header class="bg-gray-800 text-white p-4 shadow-lg">
+        <h1 class="text-xl font-bold">🔬 Gemini Research Assistant</h1>
+        <p class="text-sm opacity-80">Powered by Gemini 2.5 Pro for deep analysis</p>
     </header>
 
     <div id="chat-window">
         <div class="chat-bubble-container bot-container">
             <div class="chat-bubble bot-message">
-                <p class="text-sm">System online. I am the Win+R AI, your doubt clarification and quiz engine. State your current academic challenge or concept you'd like to test.</p>
+                <p class="text-sm">Hello! I'm your research assistant powered by Gemini 2.5 Pro. I'm ready for complex queries, code analysis, or anything requiring factual depth. How can I help you research today?</p>
             </div>
         </div>
         </div>
 
-    <div class="p-4 bg-gray-900 border-t border-green-600 flex flex-col gap-3">
-        <div id="typing-indicator" class="hidden text-sm text-green-400">
-            <span class="inline-block h-3 w-3 bg-green-500 rounded-full animate-pulse mr-2"></span>
-            AI is processing your input...
+    <div class="p-4 bg-white border-t flex flex-col gap-3">
+        <div id="typing-indicator" class="hidden text-sm text-gray-500">
+            <span class="inline-block h-3 w-3 bg-blue-500 rounded-full animate-pulse mr-2"></span>
+            Assistant is thinking...
         </div>
         <form id="chat-form" class="flex">
             <input 
                 type="text"
                 id="message-input"
-                placeholder="Enter subject or question..."
-                class="flex-grow p-3 border border-gray-600 bg-gray-800 text-white rounded-l-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Ask your research question..."
+                class="flex-grow p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                 autocomplete="off"
                 required
             />
             <button
                 type="button"
                 id="mic-button"
-                class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 shadow-md transition duration-150 ease-in-out disabled:opacity-50"
+                class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 shadow-md transition duration-150 ease-in-out disabled:opacity-50"
                 title="Start Voice Input"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -152,7 +150,7 @@
             <button
                 type="submit"
                 id="send-button"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50"
             >
                 Send
             </button>
@@ -210,7 +208,6 @@
                 } else {
                     console.error("Error starting recognition:", error);
                 }
-            }
         });
 
         // Event for when a result is successfully recognized
@@ -229,7 +226,7 @@
         recognition.onend = () => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            messageInput.placeholder = 'Enter subject or question...';
+            messageInput.placeholder = 'Ask your research question...';
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.log("Voice recognition ended.");
@@ -239,7 +236,7 @@
         recognition.onerror = (event) => {
             micButton.classList.remove('recording');
             micButton.title = 'Start Voice Input';
-            messageInput.placeholder = 'Enter subject or question...';
+            messageInput.placeholder = 'Ask your research question...';
             messageInput.disabled = false;
             sendButton.disabled = false;
             console.error('Speech recognition error:', event.error);
