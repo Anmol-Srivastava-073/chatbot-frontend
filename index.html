@@ -80,6 +80,20 @@
             color: #6b7280;
             font-style: italic;
         }
+
+        /* New: Microphone Button Styles */
+        #mic-button {
+            transition: background-color 0.15s ease-in-out;
+        }
+        .recording {
+            background-color: #ef4444 !important; /* Red-500 when recording */
+            animation: pulse-red 1s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
     </style>
 </head>
 <body>
@@ -113,7 +127,19 @@
                 required
             />
             <button
+                type="button"
+                id="mic-button"
+                class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 shadow-md transition duration-150 ease-in-out disabled:opacity-50"
+                title="Start Voice Input"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
+                    <path d="M6 12.75a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.75 6.75 0 0 1-13.5 0v-1.5a.75.75 0 0 1 .75-.75Z" />
+                </svg>
+            </button>
+            <button
                 type="submit"
+                id="send-button"
                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-xl shadow-md transition duration-150 ease-in-out disabled:opacity-50"
             >
                 Send
@@ -128,6 +154,8 @@
     const chatForm = document.getElementById('chat-form');
     const messageInput = document.getElementById('message-input');
     const typingIndicator = document.getElementById('typing-indicator');
+    const micButton = document.getElementById('mic-button');
+    const sendButton = document.getElementById('send-button');
 
     // ---
     // !!! IMPORTANT !!!
@@ -138,7 +166,90 @@
     // --- Store conversation history ---
     let conversation = [];
 
-    // --- Event Listeners ---
+    // ====================================================================
+    // 🎤 VOICE INPUT SETUP (Web Speech API)
+    // ====================================================================
+
+    // Get the vendor-prefixed SpeechRecognition object
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    // Check if the browser supports Speech Recognition
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false; // Stop listening after one phrase
+        recognition.lang = "en-US"; // Set your language here
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Event for when the mic button is clicked
+        micButton.addEventListener('click', () => {
+            try {
+                recognition.start();
+                micButton.classList.add('recording');
+                micButton.title = 'Recording... Speak now!';
+                messageInput.placeholder = '🎙️ Recording... Speak now!';
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                console.log("Voice recognition started.");
+            } catch (error) {
+                // Catches error if recognition is already active
+                if (error.name === 'InvalidStateError') {
+                     recognition.stop();
+                } else {
+                    console.error("Error starting recognition:", error);
+                }
+            }
+        });
+
+        // Event for when a result is successfully recognized
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            console.log("Transcript received:", transcript);
+            
+            // Set the transcript into the text input
+            messageInput.value = transcript;
+
+            // Trigger the form submission using the transcribed text
+            chatForm.dispatchEvent(new Event('submit'));
+        };
+
+        // Event for when the recognition service disconnects or stops
+        recognition.onend = () => {
+            micButton.classList.remove('recording');
+            micButton.title = 'Start Voice Input';
+            messageInput.placeholder = 'Ask your research question...';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            console.log("Voice recognition ended.");
+        };
+
+        // Event for errors (e.g., no microphone found, permission denied)
+        recognition.onerror = (event) => {
+            micButton.classList.remove('recording');
+            micButton.title = 'Start Voice Input';
+            messageInput.placeholder = 'Ask your research question...';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            console.error('Speech recognition error:', event.error);
+            // Optionally alert the user
+            if (event.error === 'not-allowed') {
+                alert("Microphone permission denied. Please allow microphone access for voice input.");
+            } else if (event.error === 'no-speech') {
+                alert("No speech detected. Please try speaking louder.");
+            } else {
+                alert(`Voice input error: ${event.error}`);
+            }
+        };
+
+    } else {
+        // Hide the mic button if the browser doesn't support the API
+        micButton.style.display = 'none';
+        console.warn("Web Speech API is not supported in this browser.");
+    }
+
+    // ====================================================================
+    // 💬 CHAT LOGIC (Unchanged)
+    // ====================================================================
     
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
@@ -155,6 +266,8 @@
         // Clear the input field and disable
         messageInput.value = '';
         messageInput.disabled = true;
+        micButton.disabled = true;
+        sendButton.disabled = true;
 
         // 2. Prepare the bot's receiving bubble
         const botMessageContainer = document.createElement('div');
@@ -220,6 +333,8 @@
             // 3. Complete the turn
             hideTypingIndicator();
             messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
             messageInput.focus();
 
             // Add the *full* final reply to the conversation history for the next turn
@@ -230,6 +345,8 @@
             console.error('Error fetching bot response:', error);
             hideTypingIndicator();
             messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
             
             // Display the error message in the chat window
             botMessageText.textContent = `❌ Connection or Server Error: ${error.message}. Please check console/logs.`;
