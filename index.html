@@ -149,244 +149,276 @@
 </div>
 
 <script>
-    // Get DOM elements
-    const chatWindow = document.getElementById('chat-window');
-    const chatForm = document.getElementById('chat-form');
-    const messageInput = document.getElementById('message-input');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const micButton = document.getElementById('mic-button');
-    const sendButton = document.getElementById('send-button');
+    // Get DOM elements
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const micButton = document.getElementById('mic-button');
+    const sendButton = document.getElementById('send-button');
 
-    // ---
-    // !!! IMPORTANT !!!
-    // PASTE YOUR RENDER BACKEND URL HERE: The URL must look like: https://[your-app-name].onrender.com/chat
-    // ---
-    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // <--- REPLACE THIS ENTIRE STRING WITH YOUR REAL PUBLIC URL + /chat
+    // ---
+    // !!! IMPORTANT !!!
+    // PASTE YOUR RENDER BACKEND URL HERE: The URL must look like: https://[your-app-name].onrender.com/chat
+    // ---
+    const API_URL = 'https://chatbot-78y3.onrender.com/chat'; // <--- REPLACE THIS ENTIRE STRING WITH YOUR REAL PUBLIC URL + /chat
 
-    // --- Store conversation history ---
-    let conversation = [];
+    // --- Store conversation history ---
+    let conversation = [];
 
-    // ====================================================================
-    // 🎤 VOICE INPUT SETUP (Web Speech API)
-    // ====================================================================
+    // ====================================================================
+    // 🎤 VOICE INPUT SETUP (Web Speech API)
+    // ====================================================================
 
-    // Get the vendor-prefixed SpeechRecognition object
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // Get the vendor-prefixed SpeechRecognition object
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    // Check if the browser supports Speech Recognition
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false; // Stop listening after one phrase
-        recognition.lang = "en-US"; // Set your language here
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+    // Check if the browser supports Speech Recognition
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false; // Stop listening after one phrase
+        recognition.lang = "en-US"; // Set your language here
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-        // Event for when the mic button is clicked
-        micButton.addEventListener('click', () => {
-            try {
-                recognition.start();
-                micButton.classList.add('recording');
-                micButton.title = 'Recording... Speak now!';
-                messageInput.placeholder = '🎙️ Recording... Speak now!';
-                messageInput.disabled = true;
-                sendButton.disabled = true;
-                console.log("Voice recognition started.");
-            } catch (error) {
-                // Catches error if recognition is already active
-                if (error.name === 'InvalidStateError') {
-                     recognition.stop();
-                } else {
-                    console.error("Error starting recognition:", error);
-                }
-            }
-        });
+        // Event for when the mic button is clicked
+        micButton.addEventListener('click', () => {
+            try {
+                recognition.start();
+                micButton.classList.add('recording');
+                micButton.title = 'Recording... Speak now!';
+                messageInput.placeholder = '🎙️ Recording... Speak now!';
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                console.log("Voice recognition started.");
+            } catch (error) {
+                // Catches error if recognition is already active
+                if (error.name === 'InvalidStateError') {
+                     recognition.stop();
+                } else {
+                    console.error("Error starting recognition:", error);
+                }
+            }
+        });
 
-        // Event for when a result is successfully recognized
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            console.log("Transcript received:", transcript);
+        // Event for when a result is successfully recognized
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            console.log("Transcript received:", transcript);
+            
+            // Set the transcript into the text input
+            messageInput.value = transcript;
+
+            // Trigger the form submission using the transcribed text
+            chatForm.dispatchEvent(new Event('submit'));
+        };
+
+        // Event for when the recognition service disconnects or stops
+        recognition.onend = () => {
+            micButton.classList.remove('recording');
+            micButton.title = 'Start Voice Input';
+            messageInput.placeholder = 'Ask your research question...';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            console.log("Voice recognition ended.");
+        };
+
+        // Event for errors (e.g., no microphone found, permission denied)
+        recognition.onerror = (event) => {
+            micButton.classList.remove('recording');
+            micButton.title = 'Start Voice Input';
+            messageInput.placeholder = 'Ask your research question...';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            console.error('Speech recognition error:', event.error);
+            // Optionally alert the user
+            if (event.error === 'not-allowed') {
+                alert("Microphone permission denied. Please allow microphone access for voice input.");
+            } else if (event.error === 'no-speech') {
+                alert("No speech detected. Please try speaking louder.");
+            } else {
+                alert(`Voice input error: ${event.error}`);
+            }
+        };
+
+    } else {
+        // Hide the mic button if the browser doesn't support the API
+        micButton.style.display = 'none';
+        console.warn("Web Speech API is not supported in this browser.");
+    }
+
+    // ====================================================================
+    // 💬 CHAT LOGIC 
+    // ====================================================================
+    
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+
+        const message = messageInput.value.trim();
+        if (message === '') return; 
+
+        // 1. Add user's message to the chat window and history
+        addMessage(message, 'user');
+        
+        // Add user input to local history immediately
+        conversation.push({ "role": "user", "parts": [{ "text": message }] });
+
+        // Clear the input field and disable
+        messageInput.value = '';
+        messageInput.disabled = true;
+        micButton.disabled = true;
+        sendButton.disabled = true;
+
+        // 2. Prepare the bot's receiving bubble
+        const botMessageContainer = document.createElement('div');
+        botMessageContainer.className = 'chat-bubble-container bot-container';
+        
+        const botMessageBubble = document.createElement('div');
+        botMessageBubble.className = 'chat-bubble bot-message';
+        
+        const botMessageText = document.createElement('p');
+        botMessageText.className = 'text-sm';
+        
+        botMessageBubble.appendChild(botMessageText);
+        botMessageContainer.appendChild(botMessageBubble);
+        chatWindow.appendChild(botMessageContainer);
+        
+        // Show typing indicator
+        showTypingIndicator();
+        scrollToBottom();
+
+        // --- STREAMING LOGIC ---
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // FIX: Only send the 'history' array as expected by the Flask backend
+                body: JSON.stringify({ 
+                    history: conversation,
+                    // The 'message: message' line was removed here.
+                }),
+            });
+
+            if (!response.ok) {
+                // Better error handling for non-200 responses
+                const errorBody = await response.text();
+                throw new Error(`Server status ${response.status}: ${errorBody.substring(0, 100)}...`);
+            }
+
+            // Get the stream reader and decoder
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullReply = '';
+            
+            // Loop to read the stream chunks
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
+                }
+                
+                // Decode the chunk of text
+                const chunk = decoder.decode(value, { stream: true });
+                
+                // Append the new text to the bot's message element and use markdown conversion
+                botMessageText.innerHTML += convertMarkdownToHtml(chunk);
+                fullReply += chunk;
+                
+                // Keep the chat window scrolled to the bottom
+                scrollToBottom();
+            }
+            
+            // 3. Complete the turn
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+
+            // Add the *full* final reply to the conversation history for the next turn
+            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
             
-            // Set the transcript into the text input
-            messageInput.value = transcript;
+            // Set the final, fully converted HTML content for coherence
+            botMessageText.innerHTML = convertMarkdownToHtml(fullReply);
 
-            // Trigger the form submission using the transcribed text
-            chatForm.dispatchEvent(new Event('submit'));
-        };
 
-        // Event for when the recognition service disconnects or stops
-        recognition.onend = () => {
-            micButton.classList.remove('recording');
-            micButton.title = 'Start Voice Input';
-            messageInput.placeholder = 'Ask your research question...';
-            messageInput.disabled = false;
-            sendButton.disabled = false;
-            console.log("Voice recognition ended.");
-        };
+        } catch (error) {
+            console.error('Error fetching bot response:', error);
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
+            
+            // Display the error message in the chat window
+            botMessageText.textContent = `❌ Connection or Server Error: ${error.message}. Please check console/logs.`;
+        }
+    });
 
-        // Event for errors (e.g., no microphone found, permission denied)
-        recognition.onerror = (event) => {
-            micButton.classList.remove('recording');
-            micButton.title = 'Start Voice Input';
-            messageInput.placeholder = 'Ask your research question...';
-            messageInput.disabled = false;
-            sendButton.disabled = false;
-            console.error('Speech recognition error:', event.error);
-            // Optionally alert the user
-            if (event.error === 'not-allowed') {
-                alert("Microphone permission denied. Please allow microphone access for voice input.");
-            } else if (event.error === 'no-speech') {
-                alert("No speech detected. Please try speaking louder.");
-            } else {
-                alert(`Voice input error: ${event.error}`);
-            }
-        };
-
-    } else {
-        // Hide the mic button if the browser doesn't support the API
-        micButton.style.display = 'none';
-        console.warn("Web Speech API is not supported in this browser.");
-    }
-
-    // ====================================================================
-    // 💬 CHAT LOGIC (Unchanged)
-    // ====================================================================
+    // --- Helper Functions ---
     
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
+    // NEW: Function to convert basic markdown (like bold and newlines) to HTML
+    function convertMarkdownToHtml(markdownText) {
+        let htmlText = markdownText;
 
-        const message = messageInput.value.trim();
-        if (message === '') return; 
+        // 1. Convert bold: **text** or __text__ to <strong>text</strong>
+        htmlText = htmlText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        htmlText = htmlText.replace(/__([^_]+)__/g, '<strong>$1</strong>');
 
-        // 1. Add user's message to the chat window and history
-        addMessage(message, 'user');
+        // 2. Convert italics: *text* or _text_ to <em>text</em>
+        htmlText = htmlText.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        htmlText = htmlText.replace(/_([^_]+)_/g, '<em>$1</em>');
         
-        // Add user input to local history immediately
-        conversation.push({ "role": "user", "parts": [{ "text": message }] });
+        // 3. Convert inline code: `code` to <code>code</code>
+        htmlText = htmlText.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-        // Clear the input field and disable
-        messageInput.value = '';
-        messageInput.disabled = true;
-        micButton.disabled = true;
-        sendButton.disabled = true;
+        // 4. Convert newlines (\n) to <br> for proper line breaks
+        htmlText = htmlText.replace(/\n/g, '<br>');
 
-        // 2. Prepare the bot's receiving bubble
-        const botMessageContainer = document.createElement('div');
-        botMessageContainer.className = 'chat-bubble-container bot-container';
-        
-        const botMessageBubble = document.createElement('div');
-        botMessageBubble.className = 'chat-bubble bot-message';
-        
-        const botMessageText = document.createElement('p');
-        botMessageText.className = 'text-sm';
-        
-        botMessageBubble.appendChild(botMessageText);
-        botMessageContainer.appendChild(botMessageBubble);
-        chatWindow.appendChild(botMessageContainer);
-        
-        // Show typing indicator
-        showTypingIndicator();
-        scrollToBottom();
-
-        // --- STREAMING LOGIC ---
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // FIX: Only send the 'history' array as expected by the Flask backend
-                body: JSON.stringify({ 
-                    history: conversation,
-                    // The 'message: message' line was removed here.
-                }),
-            });
-
-            if (!response.ok) {
-                // Better error handling for non-200 responses
-                const errorBody = await response.text();
-                throw new Error(`Server status ${response.status}: ${errorBody.substring(0, 100)}...`);
-            }
-
-            // Get the stream reader and decoder
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let fullReply = '';
-            
-            // Loop to read the stream chunks
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    break;
-                }
-                
-                // Decode the chunk of text
-                const chunk = decoder.decode(value, { stream: true });
-                
-                // Append the new text to the bot's message element instantly
-                botMessageText.textContent += chunk;
-                fullReply += chunk;
-                
-                // Keep the chat window scrolled to the bottom
-                scrollToBottom();
-            }
-            
-            // 3. Complete the turn
-            hideTypingIndicator();
-            messageInput.disabled = false;
-            micButton.disabled = false;
-            sendButton.disabled = false;
-            messageInput.focus();
-
-            // Add the *full* final reply to the conversation history for the next turn
-            conversation.push({ "role": "model", "parts": [{ "text": fullReply }] });
+        return htmlText;
+    }
 
 
-        } catch (error) {
-            console.error('Error fetching bot response:', error);
-            hideTypingIndicator();
-            messageInput.disabled = false;
-            micButton.disabled = false;
-            sendButton.disabled = false;
-            
-            // Display the error message in the chat window
-            botMessageText.textContent = `❌ Connection or Server Error: ${error.message}. Please check console/logs.`;
+    function addMessage(text, sender) {
+        // This function is now only used for the initial bot message and user messages
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
+
+        const messageBubble = document.createElement('div');
+        messageBubble.className = `chat-bubble ${sender}-message`;
+        
+        const messageText = document.createElement('p');
+        messageText.className = 'text-sm';
+        
+        // MODIFIED: Use innerHTML and the converter for bot messages
+        if (sender === 'bot') {
+            messageText.innerHTML = convertMarkdownToHtml(text);
+        } else {
+            // Keep textContent for user messages to prevent HTML injection
+            messageText.textContent = text;
         }
-    });
 
-    // --- Helper Functions ---
 
-    function addMessage(text, sender) {
-        // This function is now only used for the initial bot message and user messages
-        const messageContainer = document.createElement('div');
-        messageContainer.className = `chat-bubble-container ${sender === 'user' ? 'user-container' : 'bot-container'}`;
+        messageBubble.appendChild(messageText);
+        messageContainer.appendChild(messageBubble);
+        chatWindow.appendChild(messageContainer);
+        
+        scrollToBottom();
+    }
 
-        const messageBubble = document.createElement('div');
-        messageBubble.className = `chat-bubble ${sender}-message`;
-        
-        const messageText = document.createElement('p');
-        messageText.className = 'text-sm';
-        messageText.textContent = text;
+    function scrollToBottom() {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 
-        messageBubble.appendChild(messageText);
-        messageContainer.appendChild(messageBubble);
-        chatWindow.appendChild(messageContainer);
-        
-        scrollToBottom();
-    }
+    function showTypingIndicator() {
+        typingIndicator.classList.remove('hidden');
+        scrollToBottom();
+    }
 
-    function scrollToBottom() {
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-        typingIndicator.classList.remove('hidden');
-        scrollToBottom();
-    }
-
-    function hideTypingIndicator() {
-        typingIndicator.classList.add('hidden');
-    }
+    function hideTypingIndicator() {
+        typingIndicator.classList.add('hidden');
+    }
 </script>
-
 </body>
 </html>
