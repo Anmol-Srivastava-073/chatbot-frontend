@@ -23,14 +23,15 @@
     #send-button:hover {
         background-color: #005B66 !important; 
     }
-    /* --- NEW CHAT BUTTON STYLE --- */
-    /* FIX: Removed background/color/border overrides to let Tailwind classes work */
+    /* --- FIX: Removed conflicting custom styles for the button itself, 
+       but kept the hover state for consistency (using a transparent white). --- */
     #new-chat-button {
         transition: background-color 0.15s ease-in-out;
         border: 1px solid rgba(255, 255, 255, 0.3);
     }
     #new-chat-button:hover {
-        background-color: #004D55;
+        /* FIX: Using a transparent hover for a clean look */
+        background-color: rgba(255, 255, 255, 0.15);
     }
     /* --- END CUSTOM COLORS --- */
     
@@ -223,7 +224,7 @@
                 Send
             </button>
         </form>
-      </div>
+    </div>
 </div>
 
 <script>
@@ -319,6 +320,42 @@
     // ====================================================================
     // 💬 CHAT LOGIC AND STREAMING HANDLER
     // ====================================================================
+
+    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH ***
+    async function fetchInitialMessage() {
+        try {
+            // Prepare UI
+            showTypingIndicator(); 
+            
+            const response = await fetch(`${API_BASE_URL}/new_session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: USER_ID })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to start new session: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Add the non-streaming initial bot message to the chat window
+            addMessage(data.message, 'bot'); 
+            
+        } catch (error) {
+            console.error('Error starting new session:', error);
+            // Display error if the initial message fails
+            addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
+        } finally {
+            // Re-enable input
+            hideTypingIndicator();
+            messageInput.disabled = false;
+            micButton.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+        }
+    }
+
 
     // Function to fetch history on load
     async function getHistory() {
@@ -515,42 +552,6 @@
 
         return htmlText;
     }
-
-
-    // *** NEW FUNCTION TO HANDLE THE NON-STREAMING INITIAL MESSAGE FETCH (ADDED CORRECTLY) ***
-async function fetchInitialMessage() {
-    try {
-        // Prepare UI
-        showTypingIndicator(); 
-        
-        const response = await fetch(`${API_BASE_URL}/new_session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: USER_ID })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to start new session: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Add the non-streaming initial bot message to the chat window
-        addMessage(data.message, 'bot'); 
-        
-    } catch (error) {
-        console.error('Error starting new session:', error);
-        // Display error if the initial message fails
-        addMessage(`❌ Error: Could not start new session. ${error.message}`, 'bot');
-    } finally {
-        // Re-enable input
-        hideTypingIndicator();
-        messageInput.disabled = false;
-        micButton.disabled = false;
-        sendButton.disabled = false;
-        messageInput.focus();
-    }
-}
 
 
     function addMessage(text, sender) {
