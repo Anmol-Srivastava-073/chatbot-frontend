@@ -79,7 +79,7 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         word-wrap: break-word;
         line-height: 1.5;
-        width: fit-content; /* Ensure bubble shrinks to content */
+        width: fit-content; 
         max-width: 100%;
     }
 
@@ -112,10 +112,19 @@
     .bot-container::before {
         content: "";
         left: 0; 
+        /* FIX: Ensures image is loaded and container is visible */
         background-image: url('image/bot.png'); 
         background-color: #e0f2f7;
-        border: 2px solid #006D77; /* Corrected to Theme Primary Color */
-        @apply icon-size; 
+        border: 2px solid #006D77;
+        /* Apply icon-size utility properties */
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        position: absolute;
+        top: 50%; 
+        transform: translateY(-50%);
     }
 
     .bot-message {
@@ -123,7 +132,7 @@
         color: #1f2937; 
         border: 1px solid #d1d5db; 
         border-radius: 1.25rem;
-        border-top-left-radius: 0.5rem; /* Smoother point */
+        border-top-left-radius: 0.5rem; 
     }
 
 
@@ -132,24 +141,32 @@
         justify-content: flex-end; /* Aligns content (bubble and icon) to the right */
         margin-left: auto; /* Pushes the entire container to the far right */
         padding-right: 45px; /* Space for the icon */
-        /* Use row for the content flow, then rely on justify-content: flex-end */
         flex-direction: row; 
     }
 
     .user-container::after {
         content: "";
         right: 0; 
+        /* FIX: Ensures image is loaded and container is visible */
         background-image: url('image/user.png'); 
         background-color: #d1fae5;
-        border: 2px solid #3b82f6; /* Corrected to Message Blue Color */
-        @apply icon-size; 
+        border: 2px solid #3b82f6; 
+        /* Apply icon-size utility properties */
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        position: absolute;
+        top: 50%; 
+        transform: translateY(-50%);
     }
 
     .user-message {
         background-color: #3b82f6; 
         color: white; 
         border-radius: 1.25rem;
-        border-top-right-radius: 0.5rem; /* Smoother point */
+        border-top-right-radius: 0.5rem; 
     }
     
     /* New: Microphone Button Styles */
@@ -170,7 +187,8 @@
 <body>
 
 <div class="chat-container">
-    <header class="theme-primary-bg text-white p-4 shadow-lg flex justify-between items-center"> <div>
+    <header class="theme-primary-bg text-white p-4 shadow-lg flex justify-between items-center">
+        <div>
             <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
             <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
         </div>
@@ -229,7 +247,7 @@
     const typingIndicator = document.getElementById('typing-indicator');
     const micButton = document.getElementById('mic-button');
     const sendButton = document.getElementById('send-button');
-    // Get the New Chat button (FIX: use the correct ID)
+    // Get the New Chat button
     const newChatButton = document.getElementById('new-chat-button');
 
 
