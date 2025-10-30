@@ -96,6 +96,64 @@
             color: #6b7280;
             font-style: italic;
         }
+        /* Styling the Bot Container for the Icon Placement */
+.chat-bubble-container.bot-container {
+    /* 1. Set the container to position children relative to it */
+    position: relative; 
+    /* 2. Use flexbox to align the bubble and the pseudo-icon */
+    display: flex;
+    align-items: flex-start;
+    padding-left: 45px; /* Adds space for the icon */
+    margin-bottom: 1rem;
+}
+
+/* Injecting the Bot Icon using the ::before pseudo-element */
+.chat-bubble-container.bot-container::before {
+    content: "";
+    
+    /* Position the icon absolutely to keep it out of the text flow */
+    position: absolute;
+    left: 0; 
+    top: 0; /* Align icon to the top of the bubble container */
+    
+    /* Size and shape of the icon */
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    
+    /* Inserting the image */
+    background-image: url('image/bot.png'); /* <<< REPLACE THIS PATH */
+    background-size: cover;
+    background-position: center;
+    
+    /* Optional: style to match a professional theme */
+    border: 2px solid #3f83f8; 
+    background-color: #ffffff;
+}
+
+/* Adjust the message bubble to look right next to the icon */
+.chat-bubble.bot-message {
+    /* Ensures the bubble has a little offset from the icon */
+    margin-right: 1rem; 
+    /* Example color to differentiate it from the user bubble */
+    background-color: #e0f2f7; 
+    padding: 0.75rem 1rem;
+    border-radius: 1.25rem;
+}
+
+/* Optional: Example CSS for a User message to maintain balance */
+/* You will need to add a 'user-container' and 'user-message' class to the HTML
+   when a user replies for this to work. */
+.chat-bubble-container.user-container {
+    justify-content: flex-end;
+    margin-left: auto;
+    padding-right: 45px;
+}
+.chat-bubble.user-message {
+    background-color: #d1fae5;
+    margin-left: 1rem;
+    /* ... other bubble styling ... */
+}
 
         /* New: Microphone Button Styles */
         #mic-button {
@@ -115,24 +173,15 @@
 <body>
 
 <div class="chat-container">
-    <header class="theme-primary-bg text-white p-4 shadow-lg">
-        <h1 class="text-xl font-bold">⚕️ Veritas Clinical Assistant</h1>
+    <header class="theme-primary-bg text-white p-4 shadow-lg"> <h1 class="text-xl font-bold">⚕️ Veritas Clinical Assistant</h1>
         <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
     </header>
 
     <div id="chat-window">
         <div class="chat-bubble-container bot-container">
-            <img src="image/bot.png" alt="Veritas Bot Icon" class="chat-icon bot-icon">
             <div class="chat-bubble bot-message">
                 <p class="text-sm">Welcome to Veritas. I'm here to securely collect your clinical history for your doctor. What is the main symptom or reason for your consultation today?</p>
             </div>
-        </div>
-
-        <div class="chat-bubble-container user-container">
-            <div class="chat-bubble user-message">
-                <p class="text-sm">I have had a persistent headache for the past three days.</p>
-            </div>
-            <img src="image/bot.png" alt="User Icon" class="chat-icon user-icon">
         </div>
     </div>
 
