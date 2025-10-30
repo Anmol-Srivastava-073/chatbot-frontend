@@ -23,6 +23,15 @@
     #send-button:hover {
         background-color: #005B66 !important; 
     }
+    /* --- NEW CHAT BUTTON STYLE --- */
+    #new-chat-button {
+        background-color: #005B66; /* Slightly darker primary */
+        transition: background-color 0.15s ease-in-out;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    #new-chat-button:hover {
+        background-color: #004D55;
+    }
     /* --- END CUSTOM COLORS --- */
     
     body {
@@ -164,13 +173,22 @@
 <body>
 
 <div class="chat-container">
-    <header class="theme-primary-bg text-white p-4 shadow-lg"> <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
-        <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
+    <header class="theme-primary-bg text-white p-4 shadow-lg flex justify-between items-center"> 
+        <div>
+            <h1 class="text-xl font-bold">⚕️ Veritas - Clinical Assistant</h1>
+            <p class="text-sm opacity-80">Collecting Pre-Consultation Patient History</p>
+        </div>
+        <button 
+            id="new-chat-button" 
+            class="text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-opacity-90 transition duration-150 ease-in-out"
+            title="Start a new conversation"
+        >
+            New Chat
+        </button>
     </header>
 
     <div id="chat-window">
-        <!-- Chat messages will be dynamically added here -->
-    </div>
+        </div>
 
     <div class="p-4 bg-white border-t flex flex-col gap-3">
         <div id="typing-indicator" class="hidden text-sm text-gray-500">
@@ -216,6 +234,9 @@
     const typingIndicator = document.getElementById('typing-indicator');
     const micButton = document.getElementById('mic-button');
     const sendButton = document.getElementById('send-button');
+    // NEW: Get the New Chat button
+    const newChatButton = document.getElementById('new-chat-button');
+
 
     // ---
     // !!! IMPORTANT !!!
@@ -314,15 +335,17 @@
 
             const data = await response.json();
             
-            if (data.history && Array.isArray(data.history)) {
+            if (data.history && Array.isArray(data.history) && data.history.length > 0) {
                 conversation = data.history;
                 renderChatHistory();
+            } else {
+                // If no history, or failed to load, start a fresh chat (streamChat handles the initial message)
+                streamChat(null, true); 
             }
             
         } catch (error) {
-            console.error('Error fetching history:', error);
+            console.error('Error fetching history. Starting fresh chat:', error);
             // If fetching history fails, start with a fresh conversation
-            // The next message will trigger the save for the new user_id
             streamChat(null, true); 
         }
     }
@@ -408,9 +431,7 @@
             // 4. FINAL FIX: Convert markdown and apply to innerHTML once streaming is complete
             botMessageText.innerHTML = convertMarkdownToHtml(fullReply);
 
-            // The backend handles saving the history now, so we don't need to push to the local 'conversation' 
-            // array here unless we rely on it for the next turn. 
-            // For robustness, let's refresh the history from the source to keep conversation array accurate.
+            // Fetch the updated history from the backend after the full exchange is done and saved
             await getHistory(); 
             
         } catch (error) {
@@ -446,6 +467,34 @@
         // 3. Start the streaming process
         await streamChat(message);
     });
+
+    // --- NEW CHAT FUNCTIONALITY ---
+    
+    function startNewConversation() {
+        console.log("Starting new conversation...");
+        
+        // 1. Clear the DOM messages
+        chatWindow.innerHTML = '';
+        
+        // 2. Reset the local conversation state
+        conversation = []; 
+        
+        // 3. Generate a brand new user ID for a fresh Supabase entry (Optional, but ensures a clean slate)
+        // NOTE: If you prefer to keep the same user ID to track sessions, remove this block.
+        // Keeping the same ID is fine if the backend can distinguish sessions.
+        // For a true "new chat" feel, generating a new ID is safer.
+        USER_ID = crypto.randomUUID();
+        localStorage.setItem('veritas_user_id', USER_ID);
+        console.log(`New user ID generated for session: ${USER_ID}`);
+
+        // 4. Trigger a fresh chat stream to get the initial welcome message
+        streamChat(null, true);
+    }
+    
+    // Event listener for the new button
+    newChatButton.addEventListener('click', startNewConversation);
+    // --- END NEW CHAT FUNCTIONALITY ---
+
 
     // --- Helper Functions ---
     
